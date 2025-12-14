@@ -1,6 +1,6 @@
-# Albright Wiki
+# Docstack
 
-A flat-file documentation system built with PHP for [albright.wiki](https://albright.wiki).
+A flat-file documentation system built with PHP by [Albright Labs](https://albrightlabs.com).
 
 ## Features
 
@@ -11,6 +11,8 @@ A flat-file documentation system built with PHP for [albright.wiki](https://albr
 - **Internal linking** - Relative `.md` links work seamlessly
 - **Table of contents** - Auto-generated from headings
 - **Responsive design** - Works on desktop and mobile
+- **Admin editing** - Built-in Monaco editor for content management
+- **Environment configuration** - All settings via `.env` file
 
 ## Requirements
 
@@ -19,19 +21,39 @@ A flat-file documentation system built with PHP for [albright.wiki](https://albr
 
 ## Installation
 
+Docstack is designed as a core template that you clone and customize. Your content lives in the `content/` directory which is gitignored, allowing you to pull updates from the upstream repository without conflicts.
+
+### Quick Start
+
 ```bash
+# Clone the repository
+git clone https://github.com/albrightlabs/docstack-core.git my-docs
+cd my-docs
+
+# Install dependencies
 composer install
-```
 
-## Development
+# Configure your instance
+cp .env.example .env
+# Edit .env with your settings (site name, colors, etc.)
 
-Start the PHP built-in server:
+# Add your content to the content/ directory
+# See Content Structure below for organization
 
-```bash
+# Start the development server
 php -S localhost:8000 -t public public/router.php
 ```
 
-Open [http://localhost:8000](http://localhost:8000) in your browser.
+### Staying Updated
+
+Since the `content/` directory is gitignored, you can pull updates from the upstream repository:
+
+```bash
+git pull origin main
+composer install
+```
+
+Your content and customizations (in `.env`, `custom.css`, `custom.js`) remain untouched.
 
 ## Production
 
@@ -95,50 +117,77 @@ See the [Developer Docs](../../02-developers/index.md)
 
 ## Customization
 
-### Branding
+All customization is done through your `.env` file and optional custom asset files.
 
-- **Logo:** Replace `public/assets/logo.png`
-- **Favicon:** Replace `public/assets/favicon.png`
-- **Site name:** Update "Albright Wiki" in `templates/layout.php`
+### Branding (via .env)
 
-### Styling
+```env
+SITE_NAME="My Documentation"
+SITE_EMOJI="📚"
+LOGO_URL="/assets/logo.png"
+FOOTER_TEXT="© 2025 Your Company"
+```
 
-Edit `public/assets/style.css`. The file uses CSS custom properties for theming:
+### Colors (via .env)
+
+```env
+COLOR_PRIMARY="#3b82f6"
+COLOR_PRIMARY_HOVER="#2563eb"
+```
+
+### Custom CSS
+
+Create `public/assets/custom.css` for additional styling:
 
 ```css
 :root {
-    --accent-color: #0066cc;
-    --header-bg: #1a1a2e;
-    /* ... */
+    --primary-color: #8b5cf6;
+}
+
+.site-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 ```
 
+### Custom JavaScript
+
+Create `public/assets/custom.js` for custom behavior.
+
 ### Dark Mode
 
-Dark mode is automatic via `prefers-color-scheme`. Override variables in the `@media (prefers-color-scheme: dark)` block.
+Dark mode is automatic via `prefers-color-scheme` and can be toggled via:
+
+```env
+FEATURE_DARK_MODE=true
+```
 
 ## Project Structure
 
 ```
-md-explorer/
-├── content/              # Markdown documentation
+docstack-core/
+├── content/              # Your markdown documentation (gitignored)
+│   └── _example/         # Example content (included in repo)
 ├── public/               # Web root
 │   ├── index.php         # Front controller
+│   ├── router.php        # Development server router
 │   ├── .htaccess         # Apache URL rewriting
 │   └── assets/
-│       ├── style.css     # Styles (with dark/light mode)
-│       ├── app.js        # JavaScript
-│       ├── logo.png      # Site logo
-│       └── favicon.png   # Favicon
-├── src/
+│       ├── style.css     # Core styles
+│       ├── app.js        # Core JavaScript
+│       ├── custom.css    # Your custom styles (gitignored)
+│       └── custom.js     # Your custom scripts (gitignored)
+├── src/                  # PHP application code
 │   ├── Content.php       # Content/tree loading
 │   ├── Markdown.php      # Markdown processing
+│   ├── Config.php        # Configuration from .env
 │   └── helpers.php       # Utilities
-├── templates/
+├── templates/            # PHP templates
 │   ├── layout.php        # Main layout
 │   ├── sidebar.php       # Sidebar rendering
 │   ├── doc.php           # Document content
 │   └── 404.php           # Not found page
+├── .env                  # Your configuration (gitignored)
+├── .env.example          # Example configuration
 ├── composer.json
 └── README.md
 ```
@@ -149,4 +198,4 @@ MIT
 
 ---
 
-&copy; 2025 Albright Labs LLC. All Rights Reserved.
+&copy; 2025 Albright Labs LLC.
