@@ -28,7 +28,7 @@ composer install
 Start the PHP built-in server:
 
 ```bash
-php -S localhost:8000 -t public
+php -S localhost:8000 -t public public/router.php
 ```
 
 Open [http://localhost:8000](http://localhost:8000) in your browser.
