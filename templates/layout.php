@@ -92,11 +92,9 @@
             </nav>
             <div class="sidebar-footer">
                 <?= $branding['footer_text'] ?>
-                <?php if ($branding['footer_show_powered_by']): ?>
                 <div class="powered-by">
                     Powered by <a href="https://github.com/albrightlabs/docstack-core" target="_blank" rel="noopener">DocStack</a>
                 </div>
-                <?php endif; ?>
             </div>
         </aside>
 

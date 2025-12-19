@@ -82,7 +82,6 @@ class Config
 
             // Branding - Footer
             'footer_text' => '© ' . date('Y') . ' DocStack. All Rights Reserved.',
-            'footer_show_powered_by' => true,
 
             // Colors (CSS custom properties)
             'color_primary' => '#3b82f6',
@@ -130,7 +129,6 @@ class Config
 
             // Branding - Footer
             'FOOTER_TEXT' => 'footer_text',
-            'FOOTER_SHOW_POWERED_BY' => 'footer_show_powered_by',
 
             // Colors
             'COLOR_PRIMARY' => 'color_primary',
@@ -186,7 +184,6 @@ class Config
             'external_link_url' => self::get('external_link_url'),
             'external_link_logo' => self::get('external_link_logo'),
             'footer_text' => self::get('footer_text'),
-            'footer_show_powered_by' => self::get('footer_show_powered_by'),
             'color_primary' => self::get('color_primary'),
             'color_primary_hover' => self::get('color_primary_hover'),
         ];

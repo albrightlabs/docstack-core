@@ -12,6 +12,7 @@ A flat-file documentation system built with PHP by [Albright Labs](https://albri
 - **Table of contents** - Auto-generated from headings
 - **Responsive design** - Works on desktop and mobile
 - **Admin editing** - Built-in Monaco editor for content management
+- **Password protection** - Protect sections with a `.protected` file
 - **Environment configuration** - All settings via `.env` file
 
 ## Requirements
@@ -169,23 +170,31 @@ docstack-core/
 │   └── _example/         # Example content (included in repo)
 ├── public/               # Web root
 │   ├── index.php         # Front controller
+│   ├── api.php           # Admin API endpoint
 │   ├── router.php        # Development server router
 │   ├── .htaccess         # Apache URL rewriting
 │   └── assets/
 │       ├── style.css     # Core styles
 │       ├── app.js        # Core JavaScript
+│       ├── admin.css     # Admin editor styles
+│       ├── admin.js      # Admin editor JavaScript
 │       ├── custom.css    # Your custom styles (gitignored)
 │       └── custom.js     # Your custom scripts (gitignored)
 ├── src/                  # PHP application code
-│   ├── Content.php       # Content/tree loading
-│   ├── Markdown.php      # Markdown processing
+│   ├── AdminAuth.php     # Admin authentication
+│   ├── Api.php           # Admin API handlers
 │   ├── Config.php        # Configuration from .env
+│   ├── Content.php       # Content/tree loading
+│   ├── FileOperations.php # File management
+│   ├── Markdown.php      # Markdown processing
 │   └── helpers.php       # Utilities
 ├── templates/            # PHP templates
 │   ├── layout.php        # Main layout
 │   ├── sidebar.php       # Sidebar rendering
 │   ├── doc.php           # Document content
-│   └── 404.php           # Not found page
+│   ├── 404.php           # Not found page
+│   ├── admin-login.php   # Admin login modal
+│   └── password.php      # Password protection page
 ├── .env                  # Your configuration (gitignored)
 ├── .env.example          # Example configuration
 ├── composer.json

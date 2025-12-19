@@ -413,6 +413,14 @@ a:hover {
     line-height: 1.5;
 }
 
+.sidebar-footer .powered-by a {
+    color: #999;
+}
+
+.sidebar-footer .powered-by a:hover {
+    color: #bbb;
+}
+
 /* Sidebar sections (directories) */
 .sidebar-section {
     margin-bottom: 8px;
