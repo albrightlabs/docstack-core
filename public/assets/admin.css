@@ -86,7 +86,7 @@
     border-radius: 9999px;
 }
 
-/* Modal Styles */
+/* Modal Styles (matches TodoStack modal styling) */
 .admin-modal {
     position: fixed;
     inset: 0;
@@ -94,6 +94,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.admin-modal.show {
+    opacity: 1;
+    visibility: visible;
 }
 
 .admin-modal-backdrop {
@@ -105,23 +114,32 @@
 .admin-modal-content {
     position: relative;
     background-color: var(--bg-primary);
-    border-radius: 0.5rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 400px;
-    margin: 1rem;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.2s ease;
+}
+
+.admin-modal.show .admin-modal-content {
+    transform: translateY(0);
 }
 
 .admin-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.5rem;
+    gap: 12px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
 }
 
 .admin-modal-header h3 {
     margin: 0;
+    flex: 1;
     font-size: 1.125rem;
     font-weight: 600;
 }
@@ -130,18 +148,22 @@
     background: none;
     border: none;
     font-size: 1.5rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     cursor: pointer;
     line-height: 1;
-    padding: 0;
+    padding: 4px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
 }
 
 .admin-modal-close:hover {
     color: var(--text-primary);
+    background-color: var(--bg-hover);
 }
 
 .admin-modal-body {
-    padding: 1.5rem;
+    padding: 20px;
 }
 
 /* Admin Login Modal - styled like password page */
