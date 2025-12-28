@@ -1,8 +1,8 @@
-# Albright Labs Software - Development Standards
+# Development Standards
 
-This document defines the coding standards, patterns, and conventions used across Albright Labs Software projects. Use this document to ensure consistency when developing or refactoring projects.
+This document defines the coding standards, patterns, and conventions used across these PHP/JavaScript web application projects. Use this document to ensure consistency when developing or refactoring.
 
-**Applies to:** All Albright Labs Software PHP/JavaScript web applications
+**Applies to:** PHP/JavaScript web applications using this framework
 
 ---
 
@@ -1157,4 +1157,4 @@ When auditing or updating a project to follow these standards:
 9. Update documentation (Section 9)
 10. Verify template patterns (Section 10)
 
-Use this document as a reference when making changes to ensure consistency across all Albright Labs Software projects.
+Use this document as a reference when making changes to ensure consistency across all projects using this framework.

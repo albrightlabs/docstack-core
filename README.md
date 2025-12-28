@@ -1,6 +1,6 @@
 # Docstack
 
-A flat-file documentation system built with PHP by [Albright Labs](https://albrightlabs.com).
+A flat-file documentation system built with PHP. No database required.
 
 ## Features
 
@@ -203,8 +203,4 @@ docstack-core/
 
 ## License
 
-MIT
-
----
-
-&copy; 2025 Albright Labs LLC.
+MIT License - see [LICENSE](LICENSE) for details.

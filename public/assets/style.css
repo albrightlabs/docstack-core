@@ -104,9 +104,14 @@ a:hover {
 .header-content {
     display: flex;
     flex-direction: column;
-    padding: 16px 16px 0;
     max-width: 1600px;
     margin: 0 auto;
+}
+
+/* Logo row - matches cardstack/todostack 56px height */
+.header-content > div:first-child {
+    height: 56px;
+    padding: 0 16px;
 }
 
 .site-logo {
@@ -117,7 +122,6 @@ a:hover {
     font-weight: 700;
     color: var(--header-text);
     white-space: nowrap;
-    margin-bottom: 12px;
 }
 
 .site-logo:hover {
@@ -140,6 +144,7 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -413,12 +418,18 @@ a:hover {
     line-height: 1.5;
 }
 
+.sidebar-footer .footer-text {
+    margin-bottom: 8px;
+}
+
 .sidebar-footer .powered-by a {
-    color: #999;
+    color: var(--text-muted);
+    text-decoration: none;
 }
 
 .sidebar-footer .powered-by a:hover {
-    color: #bbb;
+    color: var(--text-secondary);
+    text-decoration: underline;
 }
 
 /* Sidebar sections (directories) */

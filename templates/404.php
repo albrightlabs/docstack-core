@@ -62,10 +62,14 @@
                 <?php include __DIR__ . '/sidebar.php'; ?>
             </nav>
             <div class="sidebar-footer">
-                <?= $branding['footer_text'] ?>
+                <?php if (!empty($branding['footer_text'])): ?>
+                <div class="footer-text"><?= $branding['footer_text'] ?></div>
+                <?php endif; ?>
+                <?php if ($branding['footer_show_powered_by']): ?>
                 <div class="powered-by">
                     Powered by <a href="https://github.com/albrightlabs/docstack-core" target="_blank" rel="noopener">DocStack</a>
                 </div>
+                <?php endif; ?>
             </div>
         </aside>
 
