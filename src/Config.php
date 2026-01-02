@@ -88,9 +88,10 @@ class Config
             'color_primary' => '#3b82f6',
             'color_primary_hover' => '#2563eb',
 
-            // Security
+            // Security - Multi-User Auth
+            'super_admin_email' => '',
+            'super_admin_password_hash' => '',
             'docs_password' => '',
-            'admin_password' => '',
 
             // Features
             'feature_editing' => true,
@@ -136,9 +137,10 @@ class Config
             'COLOR_PRIMARY' => 'color_primary',
             'COLOR_PRIMARY_HOVER' => 'color_primary_hover',
 
-            // Security
+            // Security - Multi-User Auth
+            'SUPER_ADMIN_EMAIL' => 'super_admin_email',
+            'SUPER_ADMIN_PASSWORD_HASH' => 'super_admin_password_hash',
             'DOCS_PASSWORD' => 'docs_password',
-            'ADMIN_PASSWORD' => 'admin_password',
 
             // Features
             'FEATURE_EDITING' => 'feature_editing',

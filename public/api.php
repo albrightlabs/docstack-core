@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use App\AdminAuth;
+use App\Auth;
 use App\Api;
 use App\Config;
 use App\Content;
@@ -15,11 +15,11 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
-// Initialize configuration (must be before AdminAuth is used)
+// Initialize configuration
 $config = Config::getInstance();
 
-// Start session for authentication
-session_start();
+// Initialize auth (starts session)
+Auth::init();
 
 // Initialize services
 $contentDir = __DIR__ . '/../' . Config::get('content_dir', 'content');

@@ -40,6 +40,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // User menu functionality
+    var userMenuTrigger = document.getElementById('user-menu-trigger');
+    var userMenuDropdown = document.getElementById('user-menu-dropdown');
+
+    if (userMenuTrigger && userMenuDropdown) {
+        userMenuTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenuDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!userMenuDropdown.contains(e.target) && !userMenuTrigger.contains(e.target)) {
+                userMenuDropdown.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                userMenuDropdown.classList.remove('active');
+            }
+        });
+    }
 });
 
 // Smooth scroll for anchor links

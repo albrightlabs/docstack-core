@@ -1,6 +1,6 @@
 /**
  * Admin Editor Module
- * Handles admin authentication, file management, and Monaco editor integration
+ * Handles file management and Monaco editor integration for admin users
  */
 const AdminEditor = {
     isAuthenticated: false,
@@ -21,11 +21,7 @@ const AdminEditor = {
             this.csrfToken = window.AdminState.csrfToken;
         }
 
-        this.updateUI();
         this.bindEvents();
-
-        // Check auth status from API
-        this.checkAuthStatus();
     },
 
     /**
@@ -66,122 +62,11 @@ const AdminEditor = {
     },
 
     /**
-     * Check authentication status from API
-     */
-    checkAuthStatus: function() {
-        fetch('/api/auth/status')
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                AdminEditor.isAuthenticated = data.authenticated;
-                AdminEditor.csrfToken = data.csrf_token;
-                AdminEditor.updateUI();
-            })
-            .catch(function(error) {
-                console.error('Failed to check auth status:', error);
-            });
-    },
-
-    /**
-     * Update UI based on authentication state
-     */
-    updateUI: function() {
-        var adminBtn = document.getElementById('admin-login-btn');
-        var adminLogoutBtn = document.getElementById('admin-logout-btn');
-        var adminBadge = document.getElementById('admin-badge');
-        var adminControls = document.querySelectorAll('.admin-only');
-
-        if (this.isAuthenticated) {
-            if (adminBtn) adminBtn.style.display = 'none';
-            if (adminLogoutBtn) adminLogoutBtn.style.display = 'inline-flex';
-            if (adminBadge) adminBadge.style.display = 'inline-flex';
-            adminControls.forEach(function(el) { el.style.display = ''; });
-        } else {
-            if (adminBtn) adminBtn.style.display = 'inline-flex';
-            if (adminLogoutBtn) adminLogoutBtn.style.display = 'none';
-            if (adminBadge) adminBadge.style.display = 'none';
-            adminControls.forEach(function(el) { el.style.display = 'none'; });
-        }
-    },
-
-    /**
-     * Show login modal
-     */
-    showLoginModal: function() {
-        var modal = document.getElementById('admin-login-modal');
-        modal.style.display = 'flex';
-        document.getElementById('admin-password').focus();
-    },
-
-    /**
-     * Close login modal
-     */
-    closeLoginModal: function() {
-        document.getElementById('admin-login-modal').style.display = 'none';
-        document.getElementById('admin-password').value = '';
-        document.getElementById('admin-login-error').style.display = 'none';
-    },
-
-    /**
-     * Handle login form submission
-     */
-    handleLogin: function(e) {
-        e.preventDefault();
-
-        var password = document.getElementById('admin-password').value;
-        var errorEl = document.getElementById('admin-login-error');
-
-        fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: password })
-        })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success) {
-                AdminEditor.isAuthenticated = true;
-                AdminEditor.csrfToken = data.csrf_token;
-                AdminEditor.closeLoginModal();
-                AdminEditor.updateUI();
-                AdminEditor.showToast('Logged in successfully', 'success');
-            } else {
-                errorEl.textContent = data.error || 'Invalid password';
-                errorEl.style.display = 'block';
-            }
-        })
-        .catch(function(error) {
-            errorEl.textContent = 'Login failed. Please try again.';
-            errorEl.style.display = 'block';
-        });
-    },
-
-    /**
-     * Handle logout
-     */
-    logout: function() {
-        fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            AdminEditor.isAuthenticated = false;
-            AdminEditor.csrfToken = null;
-            AdminEditor.updateUI();
-            AdminEditor.showToast('Logged out', 'success');
-
-            // Exit edit mode if active
-            if (AdminEditor.editor) {
-                AdminEditor.exitEditMode();
-            }
-        });
-    },
-
-    /**
      * Enter edit mode for current document
      */
     enterEditMode: function(path) {
         if (!this.isAuthenticated) {
-            this.showLoginModal();
+            window.location.href = '/docs/login';
             return;
         }
 

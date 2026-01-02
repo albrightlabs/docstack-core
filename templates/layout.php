@@ -46,24 +46,56 @@
                     </a>
                     <?php endforeach; ?>
                 </nav>
-                <?php if (\App\Config::feature('editing')): ?>
+                <?php if (\App\Auth::check()): ?>
+                <div class="user-menu">
+                    <button class="user-menu-trigger" id="user-menu-trigger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="user-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="user-menu-dropdown" id="user-menu-dropdown">
+                        <div class="user-menu-header">
+                            <div class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></div>
+                            <div class="user-menu-role"><?= htmlspecialchars(ucfirst($currentUser['role'] ?? 'user')) ?></div>
+                        </div>
+                        <?php if (\App\Auth::isAdmin()): ?>
+                        <a href="/docs/users" class="user-menu-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Manage Users
+                        </a>
+                        <?php endif; ?>
+                        <a href="/docs/logout" class="user-menu-item user-menu-logout">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
                 <div class="admin-controls">
-                    <span id="admin-badge" class="admin-badge" style="display: none;">
+                    <span id="admin-badge" class="admin-badge">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                         Admin
                     </span>
-                    <button id="admin-login-btn" class="admin-btn admin-btn-ghost admin-btn-sm" onclick="AdminEditor.showLoginModal()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
-                        Admin
-                    </button>
-                    <button id="admin-edit-btn" class="admin-btn admin-btn-ghost admin-btn-sm admin-only" onclick="AdminEditor.enterEditMode('<?= htmlspecialchars($currentPath ?? '') ?>')" style="display: none;">
+                    <button id="admin-edit-btn" class="admin-btn admin-btn-ghost admin-btn-sm" onclick="AdminEditor.enterEditMode('<?= htmlspecialchars($currentPath ?? '') ?>')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         Edit
                     </button>
-                    <button id="admin-logout-btn" class="admin-btn admin-btn-ghost admin-btn-sm" onclick="AdminEditor.logout()" style="display: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        Logout
-                    </button>
+                </div>
+                <?php elseif (!\App\Auth::check()): ?>
+                <div class="admin-controls">
+                    <a href="/docs/login" class="admin-btn admin-btn-ghost admin-btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                        Sign In
+                    </a>
                 </div>
                 <?php endif; ?>
                 <?php if (!empty($branding['external_link_url'])): ?>
@@ -120,22 +152,22 @@
         <?php endif; ?>
     </div>
 
-    <?php if (\App\Config::feature('editing')): ?>
+    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
     <?php include __DIR__ . '/admin-login.php'; ?>
     <?php endif; ?>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <?php if (\App\Config::feature('editing')): ?>
+    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <?php endif; ?>
     <script src="/assets/app.js"></script>
-    <?php if (\App\Config::feature('editing')): ?>
+    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
     <script src="/assets/admin.js"></script>
     <script>
     // Pass admin state to JavaScript
     window.AdminState = {
-        authenticated: <?= json_encode($isAdmin ?? false) ?>,
+        authenticated: true,
         csrfToken: <?= json_encode($csrfToken ?? null) ?>,
         currentPath: <?= json_encode($currentPath ?? '') ?>,
         editingEnabled: true
@@ -143,7 +175,7 @@
     </script>
     <?php else: ?>
     <script>
-    window.AdminState = { editingEnabled: false };
+    window.AdminState = { authenticated: false, editingEnabled: false };
     </script>
     <?php endif; ?>
     <?php if (file_exists(__DIR__ . '/../public/assets/custom.js')): ?>

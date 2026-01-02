@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use App\AdminAuth;
+use App\Auth;
 use App\Config;
 use App\Content;
 use App\Markdown;
@@ -23,8 +23,8 @@ $contentDir = __DIR__ . '/../' . Config::get('content_dir', 'content');
 $content = new Content($contentDir);
 $markdown = new Markdown();
 
-// Start session for password protection
-session_start();
+// Initialize auth (starts session)
+Auth::init();
 
 // Check if section is protected
 function isSectionProtected(string $contentDir, string $section): bool {
@@ -57,6 +57,56 @@ $path = preg_replace('/^docs\/?/', '', $path);
 // Handle asset requests
 if (preg_match('/\.(css|js|png|jpg|gif|svg|ico)$/i', $requestUri)) {
     return false; // Let the server handle static files
+}
+
+// Handle login page
+if ($path === 'login') {
+    if (Auth::check()) {
+        header('Location: /docs');
+        exit;
+    }
+
+    $error = null;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!Auth::validateCsrf($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid security token. Please try again.';
+        } else {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+            if (Auth::login($email, $password)) {
+                header('Location: /docs');
+                exit;
+            } else {
+                $error = 'Invalid email or password';
+            }
+        }
+    }
+
+    include __DIR__ . '/../templates/login.php';
+    exit;
+}
+
+// Handle logout
+if ($path === 'logout') {
+    Auth::logout();
+    header('Location: /docs/login');
+    exit;
+}
+
+// Handle users page (admin only)
+if ($path === 'users') {
+    if (!Auth::check()) {
+        header('Location: /docs/login');
+        exit;
+    }
+    if (!Auth::isAdmin()) {
+        http_response_code(403);
+        echo 'Access denied';
+        exit;
+    }
+    $currentUser = Auth::getCurrentUser();
+    include __DIR__ . '/../templates/users.php';
+    exit;
 }
 
 // Get sections for tabs
@@ -145,8 +195,9 @@ $pageTitle = $doc['title'];
 $currentPath = $path ?: 'index';
 
 // Admin state for templates
-$isAdmin = AdminAuth::isAuthenticated();
-$csrfToken = AdminAuth::getCsrfToken();
+$isAdmin = Auth::isAuthenticated() && Auth::isAdmin();
+$csrfToken = Auth::getCsrfToken();
+$currentUser = Auth::getCurrentUser();
 
 // Include layout
 include __DIR__ . '/../templates/layout.php';

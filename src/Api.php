@@ -30,8 +30,11 @@ class Api
         try {
             switch ($endpoint) {
                 case 'auth':
-                    $this->handleAuth($method, $parts[1] ?? '');
-                    break;
+                case 'users':
+                    // Route to UserApi for auth and user management
+                    $userApi = new UserApi();
+                    $userApi->handle($method, '/' . implode('/', $parts));
+                    return;
 
                 case 'files':
                     $this->handleFiles($method, array_slice($parts, 1));
@@ -42,52 +45,6 @@ class Api
             }
         } catch (\Exception $e) {
             $this->error($e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Handle authentication endpoints
-     */
-    private function handleAuth(string $method, string $action): void
-    {
-        switch ($action) {
-            case 'status':
-                if ($method !== 'GET') {
-                    $this->error('Method not allowed', 405);
-                    return;
-                }
-                $this->json(AdminAuth::getStatus());
-                break;
-
-            case 'login':
-                if ($method !== 'POST') {
-                    $this->error('Method not allowed', 405);
-                    return;
-                }
-                $data = $this->getJsonInput();
-                $password = $data['password'] ?? '';
-
-                if (AdminAuth::login($password)) {
-                    $this->json([
-                        'success' => true,
-                        'csrf_token' => AdminAuth::getCsrfToken(),
-                    ]);
-                } else {
-                    $this->error('Invalid password', 401);
-                }
-                break;
-
-            case 'logout':
-                if ($method !== 'POST') {
-                    $this->error('Method not allowed', 405);
-                    return;
-                }
-                AdminAuth::logout();
-                $this->json(['success' => true]);
-                break;
-
-            default:
-                $this->error('Unknown auth action', 404);
         }
     }
 
@@ -479,8 +436,14 @@ class Api
      */
     private function requireAuth(): void
     {
-        if (!AdminAuth::isAuthenticated()) {
+        if (!Auth::isAuthenticated()) {
             $this->error('Authentication required', 401);
+            exit;
+        }
+
+        // Check write permission for file operations
+        if (!Auth::canWrite()) {
+            $this->error('Read-only access. Modifications not allowed.', 403);
             exit;
         }
     }
@@ -490,7 +453,7 @@ class Api
      */
     private function validateCsrf(?string $token): void
     {
-        if (!AdminAuth::validateCsrfToken($token)) {
+        if (!Auth::validateCsrfToken($token)) {
             $this->error('Invalid CSRF token', 403);
             exit;
         }
