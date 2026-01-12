@@ -46,66 +46,68 @@
                     </a>
                     <?php endforeach; ?>
                 </nav>
-                <?php if (\App\Auth::check()): ?>
-                <div class="user-menu">
-                    <button class="user-menu-trigger" id="user-menu-trigger">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span class="user-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-                    <div class="user-menu-dropdown" id="user-menu-dropdown">
-                        <div class="user-menu-header">
-                            <div class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></div>
-                            <div class="user-menu-role"><?= htmlspecialchars(ucfirst($currentUser['role'] ?? 'user')) ?></div>
-                        </div>
-                        <?php if (\App\Auth::isAdmin()): ?>
-                        <a href="/docs/users" class="user-menu-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                            Manage Users
-                        </a>
-                        <?php endif; ?>
-                        <a href="/docs/logout" class="user-menu-item user-menu-logout">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Sign Out
-                        </a>
+                <div class="header-right">
+                    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
+                    <div class="admin-controls">
+                        <span id="admin-badge" class="admin-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            Admin
+                        </span>
+                        <button id="admin-edit-btn" class="admin-btn admin-btn-ghost admin-btn-sm" onclick="AdminEditor.enterEditMode('<?= htmlspecialchars($currentPath ?? '') ?>')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            Edit
+                        </button>
                     </div>
-                </div>
-                <?php endif; ?>
-                <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
-                <div class="admin-controls">
-                    <span id="admin-badge" class="admin-badge">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                        Admin
-                    </span>
-                    <button id="admin-edit-btn" class="admin-btn admin-btn-ghost admin-btn-sm" onclick="AdminEditor.enterEditMode('<?= htmlspecialchars($currentPath ?? '') ?>')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        Edit
-                    </button>
-                </div>
-                <?php elseif (!\App\Auth::check()): ?>
-                <div class="admin-controls">
+                    <?php endif; ?>
+                    <?php if (!empty($branding['external_link_url'])): ?>
+                    <a href="<?= htmlspecialchars($branding['external_link_url']) ?>" class="header-external-link" target="_blank" rel="noopener noreferrer">
+                        <?php if (!empty($branding['external_link_logo'])): ?>
+                        <img src="<?= htmlspecialchars($branding['external_link_logo']) ?>" alt="<?= htmlspecialchars($branding['external_link_name']) ?>" width="16" height="16">
+                        <?php endif; ?>
+                        <?= htmlspecialchars($branding['external_link_name']) ?> &rarr;
+                    </a>
+                    <?php endif; ?>
+                    <?php if (\App\Auth::check()): ?>
+                    <div class="user-menu" id="user-menu">
+                        <button type="button" class="user-menu-toggle" id="user-menu-toggle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <div class="user-menu-info">
+                                <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
+                                <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?= ($currentUser['role'] ?? 'admin') === 'admin' ? 'Admin' : 'Read-Only' ?></span>
+                            </div>
+                            <?php if (\App\Auth::isAdmin()): ?>
+                            <a href="/docs/users" class="user-menu-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                Manage Users
+                            </a>
+                            <?php endif; ?>
+                            <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                Sign Out
+                            </a>
+                        </div>
+                    </div>
+                    <?php elseif (!\App\Auth::check()): ?>
                     <a href="/docs/login" class="admin-btn admin-btn-ghost admin-btn-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                         Sign In
                     </a>
-                </div>
-                <?php endif; ?>
-                <?php if (!empty($branding['external_link_url'])): ?>
-                <a href="<?= htmlspecialchars($branding['external_link_url']) ?>" class="header-external-link" target="_blank" rel="noopener noreferrer">
-                    <?php if (!empty($branding['external_link_logo'])): ?>
-                    <img src="<?= htmlspecialchars($branding['external_link_logo']) ?>" alt="<?= htmlspecialchars($branding['external_link_name']) ?>" width="16" height="16">
                     <?php endif; ?>
-                    <?= htmlspecialchars($branding['external_link_name']) ?> &rarr;
-                </a>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
     </header>

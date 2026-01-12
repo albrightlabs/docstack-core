@@ -6,6 +6,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Auth;
 use App\Api;
+use App\UserApi;
 use App\Config;
 use App\Content;
 use App\FileOperations;
@@ -21,28 +22,36 @@ $config = Config::getInstance();
 // Initialize auth (starts session)
 Auth::init();
 
-// Initialize services
-$contentDir = __DIR__ . '/../' . Config::get('content_dir', 'content');
-$content = new Content($contentDir);
-$fileOps = new FileOperations($contentDir);
-$api = new Api($content, $fileOps);
-
 // Get request method and path
 $method = $_SERVER['REQUEST_METHOD'];
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
-
-// Remove /api prefix from path
-$path = preg_replace('/^\/api\/?/', '', $requestUri);
 
 // Handle CORS preflight requests
 if ($method === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
     header('Access-Control-Max-Age: 86400');
     http_response_code(204);
     exit;
 }
 
-// Handle the API request
-$api->handleRequest($method, $path);
+// Remove /docs prefix if present, then handle /api prefix
+$path = preg_replace('/^\/docs/', '', $requestUri);
+
+// Route to appropriate API handler
+if (str_starts_with($path, '/api/auth/') || str_starts_with($path, '/api/users')) {
+    // User and auth endpoints
+    $userApi = new UserApi();
+    $userApi->handle($method, $path);
+} else {
+    // Content API endpoints
+    $contentDir = __DIR__ . '/../' . Config::get('content_dir', 'content');
+    $content = new Content($contentDir);
+    $fileOps = new FileOperations($contentDir);
+    $api = new Api($content, $fileOps);
+
+    // Remove /api prefix from path for content API
+    $apiPath = preg_replace('/^\/api\/?/', '', $path);
+    $api->handleRequest($method, $apiPath);
+}

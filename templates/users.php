@@ -17,99 +17,152 @@ $csrfToken = Auth::getCsrfToken();
     <link rel="icon" type="image/png" href="<?= !empty($branding['favicon_url']) ? htmlspecialchars($branding['favicon_url']) : '/assets/favicon.png' ?>">
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/admin.css">
-    <?php if ($branding['color_primary'] !== '#3b82f6'): ?>
     <style>
         :root {
-            --primary-color: <?= htmlspecialchars($branding['color_primary']) ?>;
-            --primary-hover: <?= htmlspecialchars($branding['color_primary_hover']) ?>;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --text-primary: #1a1a1a;
+            --text-muted: #666;
+            --border-color: #e5e5e5;
+            --accent-color: #0066cc;
+            --space-2: 6px;
+            --space-3: 8px;
+            --space-4: 12px;
+            --space-5: 16px;
+            --space-6: 20px;
+            --space-8: 32px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
         }
-    </style>
-    <?php endif; ?>
-    <style>
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #242424;
+                --bg-tertiary: #2d2d2d;
+                --text-primary: #f5f5f5;
+                --text-muted: #a0a0a0;
+                --border-color: #333;
+            }
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
         .users-page-container {
-            max-width: 800px;
+            padding: var(--space-8) var(--space-5);
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
+        }
+
+        .users-page {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
         }
 
         .users-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
         }
 
         .users-header h1 {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 600;
+            color: var(--text-primary);
             margin: 0;
         }
 
         .users-list {
-            background: var(--bg-primary, #fff);
-            border: 1px solid var(--border-color, #e5e5e5);
-            border-radius: 8px;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
         }
 
-        .user-item {
+        .user-card {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color, #e5e5e5);
+            padding: var(--space-4) var(--space-5);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: border-color 0.15s ease;
         }
 
-        .user-item:last-child {
-            border-bottom: none;
+        .user-card:hover {
+            border-color: var(--accent-color);
         }
 
-        .user-info {
-            flex: 1;
-        }
-
-        .user-email {
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .user-meta {
-            font-size: 13px;
-            color: var(--text-muted, #666);
-        }
-
-        .user-badges {
+        .user-card-info {
             display: flex;
-            gap: 8px;
-            margin-right: 16px;
+            align-items: center;
+            gap: var(--space-4);
         }
 
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
+        .user-card-email {
+            font-weight: normal;
+            color: var(--text-primary);
+        }
+
+        .user-card-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .user-card-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .role-badge {
             font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 500;
         }
 
-        .badge-admin {
+        .role-admin {
             background: #dbeafe;
             color: #1d4ed8;
         }
 
-        .badge-readonly {
+        .role-readonly {
             background: #f3f4f6;
             color: #6b7280;
         }
 
-        .badge-super {
-            background: #fef3c7;
-            color: #b45309;
+        .super-admin-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            background: #8b5cf6;
+            color: white;
+            border-radius: 9999px;
+            font-weight: 500;
         }
 
-        .user-actions {
-            display: flex;
-            gap: 8px;
+        @media (prefers-color-scheme: dark) {
+            .role-admin {
+                background: #1e3a5f;
+                color: #60a5fa;
+            }
+
+            .role-readonly {
+                background: #374151;
+                color: #9ca3af;
+            }
         }
 
         .btn {
@@ -126,21 +179,21 @@ $csrfToken = Auth::getCsrfToken();
         }
 
         .btn-primary {
-            background: var(--primary-color, #3b82f6);
+            background: var(--accent-color);
             color: white;
         }
 
         .btn-primary:hover {
-            background: var(--primary-hover, #2563eb);
+            background: var(--accent-hover);
         }
 
         .btn-secondary {
-            background: var(--bg-tertiary, #f1f3f5);
-            color: var(--text-primary, #1a1a1a);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .btn-secondary:hover {
-            background: var(--bg-hover, #e5e5e5);
+            background: var(--border-color);
         }
 
         .btn-danger {
@@ -157,23 +210,13 @@ $csrfToken = Auth::getCsrfToken();
             font-size: 13px;
         }
 
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted, #666);
-            text-decoration: none;
-            font-size: 14px;
-            margin-bottom: 24px;
+        .text-muted {
+            color: var(--text-muted);
         }
 
-        .back-link:hover {
-            color: var(--text-primary, #1a1a1a);
-        }
-
-        /* Modal styles */
+        /* Modal styles - matches TodoStack */
         .modal-overlay {
-            display: none;
+            display: flex;
             position: fixed;
             top: 0;
             left: 0;
@@ -183,14 +226,28 @@ $csrfToken = Auth::getCsrfToken();
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
         }
 
-        .modal-overlay.active {
-            display: flex;
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal {
-            background: var(--bg-primary, #fff);
+            transform: translateY(20px);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal {
+            background: var(--bg-primary);
             border-radius: 12px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             width: 100%;
@@ -202,8 +259,8 @@ $csrfToken = Auth::getCsrfToken();
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color, #e5e5e5);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .modal-title {
@@ -217,7 +274,14 @@ $csrfToken = Auth::getCsrfToken();
             border: none;
             padding: 4px;
             cursor: pointer;
-            color: var(--text-muted, #666);
+            color: var(--text-muted);
+            border-radius: 4px;
+            transition: background-color 0.15s, color 0.15s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .modal-body {
@@ -239,24 +303,24 @@ $csrfToken = Auth::getCsrfToken();
         .form-select {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid var(--border-color, #e5e5e5);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 14px;
-            background: var(--bg-primary, #fff);
-            color: var(--text-primary, #1a1a1a);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             box-sizing: border-box;
         }
 
         .form-input:focus,
         .form-select:focus {
             outline: none;
-            border-color: var(--primary-color, #3b82f6);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
         }
 
         .form-help {
             font-size: 12px;
-            color: var(--text-muted, #666);
+            color: var(--text-muted);
             margin-top: 4px;
         }
 
@@ -270,49 +334,75 @@ $csrfToken = Auth::getCsrfToken();
         .empty-state {
             padding: 40px 20px;
             text-align: center;
-            color: var(--text-muted, #666);
+            color: var(--text-muted);
         }
 
-        @media (prefers-color-scheme: dark) {
-            .badge-admin {
-                background: #1e3a5f;
-                color: #60a5fa;
+        @media (max-width: 600px) {
+            .user-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-3);
             }
 
-            .badge-readonly {
-                background: #374151;
-                color: #9ca3af;
-            }
-
-            .badge-super {
-                background: #78350f;
-                color: #fbbf24;
+            .user-card-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
 </head>
 <body>
-    <div class="users-page-container">
-        <a href="/docs" class="back-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            Back to Documentation
-        </a>
-
-        <div class="users-header">
-            <h1>User Management</h1>
-            <button type="button" class="btn btn-primary" id="add-user-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Add User
-            </button>
+    <header class="site-header">
+        <div class="header-content" style="flex-direction: row; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px;">
+            <a href="/docs" class="site-logo">
+                <?php if (!empty($branding['logo_url'])): ?>
+                <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>" style="height: 32px; width: auto;">
+                <?php else: ?>
+                <span class="site-logo-emoji"><?= $branding['site_emoji'] ?></span>
+                <span><?= htmlspecialchars($branding['site_name']) ?></span>
+                <?php endif; ?>
+            </a>
+            <div class="user-menu" id="user-menu">
+                <button type="button" class="user-menu-toggle" id="user-menu-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <div class="user-menu-dropdown" id="user-menu-dropdown">
+                    <div class="user-menu-info">
+                        <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
+                        <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?= ($currentUser['role'] ?? 'admin') === 'admin' ? 'Admin' : 'Read-Only' ?></span>
+                    </div>
+                    <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Sign Out
+                    </a>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <div class="users-list" id="users-list">
-            <div class="empty-state">Loading users...</div>
+    <div class="users-page-container">
+        <div class="users-page">
+            <div class="users-header">
+                <h1>User Management</h1>
+                <button type="button" class="btn btn-primary" id="add-user-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add User
+                </button>
+            </div>
+
+            <div class="users-list" id="users-list">
+                <div class="empty-state">Loading users...</div>
+            </div>
         </div>
     </div>
 
@@ -374,7 +464,7 @@ $csrfToken = Auth::getCsrfToken();
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete <strong id="delete-user-email"></strong>?</p>
-                <p style="color: var(--text-muted, #666); font-size: 14px;">This action cannot be undone.</p>
+                <p class="text-muted" style="font-size: 14px;">This action cannot be undone.</p>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" data-close="delete-user-modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirm-delete-user">Delete</button>
@@ -387,51 +477,56 @@ $csrfToken = Auth::getCsrfToken();
     window.CSRF_TOKEN = <?= json_encode($csrfToken) ?>;
     window.CURRENT_USER_ID = <?= json_encode($currentUser['id'] ?? '') ?>;
 
-    (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var users = [];
         var usersList = document.getElementById('users-list');
         var userModal = document.getElementById('user-modal');
         var deleteModal = document.getElementById('delete-user-modal');
         var userForm = document.getElementById('user-form');
+        var editingUserId = null;
         var deleteUserId = null;
 
         // Load users
         function loadUsers() {
-            fetch('/api/users', {
+            fetch('/docs/api/users', {
                 headers: { 'X-CSRF-Token': window.CSRF_TOKEN }
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.success) {
-                    renderUsers(data.data);
+                    users = data.data;
+                    renderUsers();
+                } else {
+                    usersList.innerHTML = '<div class="empty-state">Failed to load users</div>';
                 }
+            })
+            .catch(function(error) {
+                usersList.innerHTML = '<div class="empty-state">Failed to load users: ' + error.message + '</div>';
             });
         }
 
-        function renderUsers(users) {
+        function renderUsers() {
             if (!users.length) {
                 usersList.innerHTML = '<div class="empty-state">No users found</div>';
                 return;
             }
 
             usersList.innerHTML = users.map(function(user) {
-                var badges = [];
-                if (user.is_super_admin) {
-                    badges.push('<span class="badge badge-super">Super Admin</span>');
-                }
-                badges.push('<span class="badge badge-' + user.role + '">' + (user.role === 'admin' ? 'Admin' : 'Read-Only') + '</span>');
-
                 var canEdit = !user.is_super_admin;
                 var canDelete = !user.is_super_admin && user.id !== window.CURRENT_USER_ID;
 
-                return '<div class="user-item" data-user-id="' + user.id + '">' +
-                    '<div class="user-info">' +
-                        '<div class="user-email">' + escapeHtml(user.email) + '</div>' +
-                        '<div class="user-meta">Created: ' + formatDate(user.created_at) + '</div>' +
+                return '<div class="user-card" data-user-id="' + user.id + '">' +
+                    '<div class="user-card-info">' +
+                        '<span class="user-card-email">' + escapeHtml(user.email) + '</span>' +
+                        '<div class="user-card-meta">' +
+                            '<span class="role-badge role-' + user.role + '">' + (user.role === 'admin' ? 'Admin' : 'Read-Only') + '</span>' +
+                            (user.is_super_admin ? '<span class="super-admin-badge">Super Admin</span>' : '') +
+                        '</div>' +
                     '</div>' +
-                    '<div class="user-badges">' + badges.join('') + '</div>' +
-                    '<div class="user-actions">' +
+                    '<div class="user-card-actions">' +
                         (canEdit ? '<button type="button" class="btn btn-secondary btn-sm edit-user" data-id="' + user.id + '">Edit</button>' : '') +
                         (canDelete ? '<button type="button" class="btn btn-danger btn-sm delete-user" data-id="' + user.id + '" data-email="' + escapeHtml(user.email) + '">Delete</button>' : '') +
+                        (!canEdit && !canDelete ? '<span class="text-muted" style="font-size: 12px;">Protected</span>' : '') +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -448,44 +543,43 @@ $csrfToken = Auth::getCsrfToken();
                 btn.addEventListener('click', function() {
                     deleteUserId = this.dataset.id;
                     document.getElementById('delete-user-email').textContent = this.dataset.email;
-                    deleteModal.classList.add('active');
+                    deleteModal.classList.add('show');
                 });
             });
         }
 
         function editUser(id) {
-            fetch('/api/users/' + id, {
-                headers: { 'X-CSRF-Token': window.CSRF_TOKEN }
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    var user = data.data;
-                    document.getElementById('user-modal-title').textContent = 'Edit User';
-                    document.getElementById('user-id').value = user.id;
-                    document.getElementById('user-email').value = user.email;
-                    document.getElementById('user-password').value = '';
-                    document.getElementById('user-password').required = false;
-                    document.getElementById('password-help').textContent = 'Leave blank to keep current password';
-                    document.getElementById('user-role').value = user.role;
-                    document.getElementById('user-role').disabled = user.is_super_admin;
-                    userModal.classList.add('active');
-                }
-            });
+            var user = users.find(function(u) { return u.id === id; });
+            if (!user) return;
+
+            editingUserId = id;
+            document.getElementById('user-modal-title').textContent = 'Edit User';
+            document.getElementById('user-id').value = user.id;
+            document.getElementById('user-email').value = user.email;
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').required = false;
+            document.getElementById('password-help').textContent = 'Leave blank to keep current password';
+            document.getElementById('user-role').value = user.role;
+            document.getElementById('user-role').disabled = user.is_super_admin;
+            userModal.classList.add('show');
         }
 
         // Add user button
-        document.getElementById('add-user-btn').addEventListener('click', function() {
-            document.getElementById('user-modal-title').textContent = 'Add User';
-            document.getElementById('user-id').value = '';
-            document.getElementById('user-email').value = '';
-            document.getElementById('user-password').value = '';
-            document.getElementById('user-password').required = true;
-            document.getElementById('password-help').textContent = 'Minimum 8 characters';
-            document.getElementById('user-role').value = 'readonly';
-            document.getElementById('user-role').disabled = false;
-            userModal.classList.add('active');
-        });
+        var addBtn = document.getElementById('add-user-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                editingUserId = null;
+                document.getElementById('user-modal-title').textContent = 'Add User';
+                document.getElementById('user-id').value = '';
+                document.getElementById('user-email').value = '';
+                document.getElementById('user-password').value = '';
+                document.getElementById('user-password').required = true;
+                document.getElementById('password-help').textContent = 'Minimum 8 characters';
+                document.getElementById('user-role').value = 'readonly';
+                document.getElementById('user-role').disabled = false;
+                userModal.classList.add('show');
+            });
+        }
 
         // Form submit
         userForm.addEventListener('submit', function(e) {
@@ -503,7 +597,7 @@ $csrfToken = Auth::getCsrfToken();
                 data.password = password;
             }
 
-            var url = id ? '/api/users/' + id : '/api/users';
+            var url = id ? '/docs/api/users/' + id : '/docs/api/users';
             var method = id ? 'PUT' : 'POST';
 
             fetch(url, {
@@ -514,7 +608,7 @@ $csrfToken = Auth::getCsrfToken();
             .then(function(r) { return r.json(); })
             .then(function(result) {
                 if (result.success) {
-                    userModal.classList.remove('active');
+                    userModal.classList.remove('show');
                     loadUsers();
                 } else {
                     alert(result.error || 'Failed to save user');
@@ -526,7 +620,7 @@ $csrfToken = Auth::getCsrfToken();
         document.getElementById('confirm-delete-user').addEventListener('click', function() {
             if (!deleteUserId) return;
 
-            fetch('/api/users/' + deleteUserId, {
+            fetch('/docs/api/users/' + deleteUserId, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ csrf_token: window.CSRF_TOKEN })
@@ -534,7 +628,7 @@ $csrfToken = Auth::getCsrfToken();
             .then(function(r) { return r.json(); })
             .then(function(result) {
                 if (result.success) {
-                    deleteModal.classList.remove('active');
+                    deleteModal.classList.remove('show');
                     deleteUserId = null;
                     loadUsers();
                 } else {
@@ -546,7 +640,7 @@ $csrfToken = Auth::getCsrfToken();
         // Close modals
         document.querySelectorAll('[data-close]').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                document.getElementById(this.dataset.close).classList.remove('active');
+                document.getElementById(this.dataset.close).classList.remove('show');
             });
         });
 
@@ -554,7 +648,7 @@ $csrfToken = Auth::getCsrfToken();
         document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) {
-                    this.classList.remove('active');
+                    this.classList.remove('show');
                 }
             });
         });
@@ -565,14 +659,144 @@ $csrfToken = Auth::getCsrfToken();
             return div.innerHTML;
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return 'N/A';
-            var d = new Date(dateStr);
-            return d.toLocaleDateString();
-        }
-
         // Initial load
         loadUsers();
+
+        // User menu toggle
+        var userMenuToggle = document.getElementById('user-menu-toggle');
+        var userMenuDropdown = document.getElementById('user-menu-dropdown');
+
+        if (userMenuToggle && userMenuDropdown) {
+            userMenuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userMenuDropdown.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!userMenuDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
+                    userMenuDropdown.classList.remove('show');
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    userMenuDropdown.classList.remove('show');
+                }
+            });
+        }
+    });
+
+    // Favicon generation
+    function setFaviconFromEmoji(emoji, letter, options) {
+        options = options || {};
+        var size = options.size || 32;
+        var letterFont = options.letterFont || 'bold 14px sans-serif';
+        var fillStyle = options.fillStyle || 'white';
+        var strokeStyle = options.strokeStyle || 'black';
+        var padding = options.padding || 2;
+
+        var canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        var ctx = canvas.getContext('2d');
+
+        ctx.font = (size - 4) + 'px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(emoji, size / 2, size / 2 + 2);
+
+        if (letter) {
+            ctx.font = letterFont;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.lineWidth = 2;
+            var x = size - padding;
+            var y = size - padding;
+            ctx.strokeStyle = strokeStyle;
+            ctx.strokeText(letter, x, y);
+            ctx.fillStyle = fillStyle;
+            ctx.fillText(letter, x, y);
+        }
+
+        var link = document.querySelector('link[rel="icon"]');
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        link.type = 'image/png';
+        link.href = canvas.toDataURL('image/png');
+    }
+
+    function setFaviconFromImage(imageUrl, letter, options) {
+        options = options || {};
+        var size = options.size || 32;
+        var font = options.letterFont || 'bold 14px sans-serif';
+        var fillStyle = options.fillStyle || 'white';
+        var strokeStyle = options.strokeStyle || 'black';
+        var padding = options.padding || 2;
+
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            var ctx = canvas.getContext('2d');
+
+            ctx.drawImage(img, 0, 0, size, size);
+
+            if (letter) {
+                ctx.font = font;
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+                ctx.lineWidth = 2;
+                var x = size - padding;
+                var y = size - padding;
+                ctx.strokeStyle = strokeStyle;
+                ctx.strokeText(letter, x, y);
+                ctx.fillStyle = fillStyle;
+                ctx.fillText(letter, x, y);
+            }
+
+            var link = document.querySelector('link[rel="icon"]');
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.type = 'image/png';
+            link.href = canvas.toDataURL('image/png');
+        };
+
+        img.src = imageUrl;
+    }
+
+    (function() {
+        var faviconUrl = <?= json_encode($branding['favicon_url']) ?>;
+        var faviconEmoji = <?= json_encode($branding['favicon_emoji']) ?>;
+        var siteEmoji = <?= json_encode($branding['site_emoji']) ?>;
+        var siteName = <?= json_encode($branding['site_name']) ?>;
+        var customLetter = <?= json_encode($branding['favicon_letter']) ?>;
+        var showLetter = <?= json_encode($branding['favicon_show_letter']) ?>;
+
+        var letter = null;
+        if (showLetter) {
+            letter = customLetter || siteName.charAt(0).toUpperCase();
+        }
+
+        var options = {
+            letterFont: 'bold 16px sans-serif',
+            padding: 1
+        };
+
+        if (faviconUrl) {
+            setFaviconFromImage(faviconUrl, letter, options);
+        } else {
+            var emoji = faviconEmoji || siteEmoji || '📚';
+            setFaviconFromEmoji(emoji, letter, options);
+        }
     })();
     </script>
 </body>

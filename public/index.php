@@ -59,6 +59,12 @@ if (preg_match('/\.(css|js|png|jpg|gif|svg|ico)$/i', $requestUri)) {
     return false; // Let the server handle static files
 }
 
+// Handle API requests
+if (str_starts_with($path, 'api/') || $path === 'api') {
+    require __DIR__ . '/api.php';
+    exit;
+}
+
 // Handle login page
 if ($path === 'login') {
     if (Auth::check()) {
@@ -68,7 +74,12 @@ if ($path === 'login') {
 
     $error = null;
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (!Auth::validateCsrf($_POST['csrf_token'] ?? null)) {
+        // Check rate limiting first
+        if (Auth::isRateLimited()) {
+            $remaining = Auth::getRateLimitRemainingTime();
+            $minutes = ceil($remaining / 60);
+            $error = "Too many failed attempts. Please try again in {$minutes} minute(s).";
+        } elseif (!Auth::validateCsrf($_POST['csrf_token'] ?? null)) {
             $error = 'Invalid security token. Please try again.';
         } else {
             $email = $_POST['email'] ?? '';
@@ -77,7 +88,14 @@ if ($path === 'login') {
                 header('Location: /docs');
                 exit;
             } else {
-                $error = 'Invalid email or password';
+                // Check if now rate limited after failed attempt
+                if (Auth::isRateLimited()) {
+                    $remaining = Auth::getRateLimitRemainingTime();
+                    $minutes = ceil($remaining / 60);
+                    $error = "Too many failed attempts. Please try again in {$minutes} minute(s).";
+                } else {
+                    $error = 'Invalid email or password';
+                }
             }
         }
     }

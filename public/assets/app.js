@@ -42,24 +42,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // User menu functionality
-    var userMenuTrigger = document.getElementById('user-menu-trigger');
+    var userMenuToggle = document.getElementById('user-menu-toggle');
     var userMenuDropdown = document.getElementById('user-menu-dropdown');
 
-    if (userMenuTrigger && userMenuDropdown) {
-        userMenuTrigger.addEventListener('click', function(e) {
+    if (userMenuToggle && userMenuDropdown) {
+        userMenuToggle.addEventListener('click', function(e) {
             e.stopPropagation();
-            userMenuDropdown.classList.toggle('active');
+            userMenuDropdown.classList.toggle('show');
         });
 
         document.addEventListener('click', function(e) {
-            if (!userMenuDropdown.contains(e.target) && !userMenuTrigger.contains(e.target)) {
-                userMenuDropdown.classList.remove('active');
+            if (!userMenuDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
+                userMenuDropdown.classList.remove('show');
             }
         });
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                userMenuDropdown.classList.remove('active');
+                userMenuDropdown.classList.remove('show');
             }
         });
     }
