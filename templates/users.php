@@ -370,6 +370,7 @@ $csrfToken = Auth::getCsrfToken();
                 </button>
                 <div class="user-menu-dropdown" id="user-menu-dropdown">
                     <div class="user-menu-info">
+                        <span class="user-menu-name"><?= htmlspecialchars($currentUser['name'] ?? '') ?></span>
                         <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
                         <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?= ($currentUser['role'] ?? 'admin') === 'admin' ? 'Admin' : 'Read-Only' ?></span>
                     </div>
@@ -422,6 +423,11 @@ $csrfToken = Auth::getCsrfToken();
                     <input type="hidden" id="user-id" name="id">
 
                     <div class="form-group">
+                        <label class="form-label" for="user-name">Name</label>
+                        <input type="text" class="form-input" id="user-name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label" for="user-email">Email</label>
                         <input type="email" class="form-input" id="user-email" name="email" required>
                     </div>
@@ -430,6 +436,12 @@ $csrfToken = Auth::getCsrfToken();
                         <label class="form-label" for="user-password">Password</label>
                         <input type="password" class="form-input" id="user-password" name="password" minlength="8">
                         <small class="form-help" id="password-help">Minimum 8 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="user-password-confirm">Confirm Password</label>
+                        <input type="password" class="form-input" id="user-password-confirm" name="password_confirm" minlength="8">
+                        <small class="form-help text-danger" id="password-match-error" style="display: none;">Passwords do not match</small>
                     </div>
 
                     <div class="form-group">
@@ -462,7 +474,7 @@ $csrfToken = Auth::getCsrfToken();
                 </button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete <strong id="delete-user-email"></strong>?</p>
+                <p>Are you sure you want to delete <strong id="delete-user-name"></strong>?</p>
                 <p class="text-muted" style="font-size: 14px;">This action cannot be undone.</p>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" data-close="delete-user-modal">Cancel</button>
@@ -516,6 +528,7 @@ $csrfToken = Auth::getCsrfToken();
 
                 return '<div class="user-card" data-user-id="' + user.id + '">' +
                     '<div class="user-card-info">' +
+                        '<span class="user-card-name">' + escapeHtml(user.name || '') + '</span>' +
                         '<span class="user-card-email">' + escapeHtml(user.email) + '</span>' +
                         '<div class="user-card-meta">' +
                             '<span class="role-badge role-' + user.role + '">' + (user.role === 'admin' ? 'Admin' : 'Read-Only') + '</span>' +
@@ -524,7 +537,7 @@ $csrfToken = Auth::getCsrfToken();
                     '</div>' +
                     '<div class="user-card-actions">' +
                         (canEdit ? '<button type="button" class="btn btn-secondary btn-sm edit-user" data-id="' + user.id + '">Edit</button>' : '') +
-                        (canDelete ? '<button type="button" class="btn btn-danger btn-sm delete-user" data-id="' + user.id + '" data-email="' + escapeHtml(user.email) + '">Delete</button>' : '') +
+                        (canDelete ? '<button type="button" class="btn btn-danger btn-sm delete-user" data-id="' + user.id + '" data-name="' + escapeHtml(user.name || user.email) + '">Delete</button>' : '') +
                         (!canEdit && !canDelete ? '<span class="text-muted" style="font-size: 12px;">Protected</span>' : '') +
                     '</div>' +
                 '</div>';
@@ -541,7 +554,7 @@ $csrfToken = Auth::getCsrfToken();
             usersList.querySelectorAll('.delete-user').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     deleteUserId = this.dataset.id;
-                    document.getElementById('delete-user-email').textContent = this.dataset.email;
+                    document.getElementById('delete-user-name').textContent = this.dataset.name;
                     deleteModal.classList.add('show');
                 });
             });
@@ -554,10 +567,14 @@ $csrfToken = Auth::getCsrfToken();
             editingUserId = id;
             document.getElementById('user-modal-title').textContent = 'Edit User';
             document.getElementById('user-id').value = user.id;
+            document.getElementById('user-name').value = user.name || '';
             document.getElementById('user-email').value = user.email;
             document.getElementById('user-password').value = '';
+            document.getElementById('user-password-confirm').value = '';
             document.getElementById('user-password').required = false;
+            document.getElementById('user-password-confirm').required = false;
             document.getElementById('password-help').textContent = 'Leave blank to keep current password';
+            document.getElementById('password-match-error').style.display = 'none';
             document.getElementById('user-role').value = user.role;
             document.getElementById('user-role').disabled = user.is_super_admin;
             userModal.classList.add('show');
@@ -570,10 +587,14 @@ $csrfToken = Auth::getCsrfToken();
                 editingUserId = null;
                 document.getElementById('user-modal-title').textContent = 'Add User';
                 document.getElementById('user-id').value = '';
+                document.getElementById('user-name').value = '';
                 document.getElementById('user-email').value = '';
                 document.getElementById('user-password').value = '';
+                document.getElementById('user-password-confirm').value = '';
                 document.getElementById('user-password').required = true;
+                document.getElementById('user-password-confirm').required = true;
                 document.getElementById('password-help').textContent = 'Minimum 8 characters';
+                document.getElementById('password-match-error').style.display = 'none';
                 document.getElementById('user-role').value = 'readonly';
                 document.getElementById('user-role').disabled = false;
                 userModal.classList.add('show');
@@ -585,13 +606,24 @@ $csrfToken = Auth::getCsrfToken();
             e.preventDefault();
 
             var id = document.getElementById('user-id').value;
+            var password = document.getElementById('user-password').value;
+            var passwordConfirm = document.getElementById('user-password-confirm').value;
+            var passwordMatchError = document.getElementById('password-match-error');
+
+            // Validate password confirmation
+            if (password && password !== passwordConfirm) {
+                passwordMatchError.style.display = 'block';
+                return;
+            }
+            passwordMatchError.style.display = 'none';
+
             var data = {
+                name: document.getElementById('user-name').value,
                 email: document.getElementById('user-email').value,
                 role: document.getElementById('user-role').value,
                 csrf_token: window.CSRF_TOKEN
             };
 
-            var password = document.getElementById('user-password').value;
             if (password) {
                 data.password = password;
             }

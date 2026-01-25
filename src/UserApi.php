@@ -121,9 +121,15 @@ class UserApi
 
                 case 'POST':
                     $data = $this->getJsonInput();
+                    $name = $data['name'] ?? '';
                     $email = $data['email'] ?? '';
                     $password = $data['password'] ?? '';
                     $role = $data['role'] ?? 'readonly';
+
+                    if (empty(trim($name))) {
+                        $this->error('Name is required');
+                        return;
+                    }
 
                     if (empty($email) || empty($password)) {
                         $this->error('Email and password are required');
@@ -136,7 +142,7 @@ class UserApi
                     }
 
                     try {
-                        $user = $this->userManager->create($email, $password, $role);
+                        $user = $this->userManager->create($name, $email, $password, $role);
                         $this->json(['success' => true, 'data' => $user], 201);
                     } catch (\RuntimeException $e) {
                         $this->error($e->getMessage());
