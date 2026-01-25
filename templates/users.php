@@ -327,8 +327,8 @@ $csrfToken = Auth::getCsrfToken();
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 12px;
-            margin-top: 24px;
+            gap: 8px;
+            margin-top: 20px;
         }
 
         .empty-state {
