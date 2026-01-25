@@ -2,18 +2,22 @@
 
 /**
  * Render a sidebar tree recursively with admin controls
+ * Supports nav_only items (user can see for navigation but not access content)
  */
 function renderTree(array $items, string $currentPath, string $parentSlug = '', int $depth = 0): void
 {
     foreach ($items as $item):
         $isActive = $currentPath === $item['slug'];
+        $isNavOnly = $item['nav_only'] ?? false;
         $itemName = htmlspecialchars($item['name']);
         $itemSlug = htmlspecialchars($item['slug']);
+        $navOnlyClass = $isNavOnly ? ' nav-only' : '';
 ?>
         <?php if ($item['type'] === 'dir'): ?>
-        <div class="sidebar-section">
-            <div class="sidebar-section-header">
+        <div class="sidebar-section<?= $navOnlyClass ?>">
+            <div class="sidebar-section-header<?= $navOnlyClass ?>">
                 <span><?= $itemName ?></span>
+                <?php if (!$isNavOnly): ?>
                 <span class="sidebar-item-actions admin-only" style="display: none;">
                     <button class="sidebar-action-btn" onclick="event.stopPropagation(); AdminEditor.showCreateModal('<?= $itemSlug ?>')" title="Add new">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
@@ -25,13 +29,19 @@ function renderTree(array $items, string $currentPath, string $parentSlug = '', 
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                 </span>
+                <?php endif; ?>
             </div>
             <div class="sidebar-section-content">
-                <?php renderTree($item['children'], $currentPath, $item['slug'], $depth + 1); ?>
+                <?php renderTree($item['children'] ?? [], $currentPath, $item['slug'], $depth + 1); ?>
             </div>
         </div>
         <?php else: ?>
         <div class="sidebar-link-wrapper">
+            <?php if ($isNavOnly): ?>
+            <span class="sidebar-link nav-only" title="Navigate to sub-pages to access content">
+                <?= $itemName ?>
+            </span>
+            <?php else: ?>
             <a href="/docs/<?= $itemSlug ?>" class="sidebar-link<?= $isActive ? ' active' : '' ?>">
                 <?= $itemName ?>
                 <span class="sidebar-item-actions admin-only" style="display: none;">
@@ -46,6 +56,7 @@ function renderTree(array $items, string $currentPath, string $parentSlug = '', 
                     </button>
                 </span>
             </a>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 <?php

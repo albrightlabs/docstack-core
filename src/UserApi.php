@@ -33,6 +33,12 @@ class UserApi
                 return;
             }
 
+            // Content tree endpoint (for permission management)
+            if ($path === '/content/tree') {
+                $this->handleContentTree($method);
+                return;
+            }
+
             $this->error('Not found', 404);
         } catch (\Exception $e) {
             $this->error($e->getMessage(), 500);
@@ -177,6 +183,13 @@ class UserApi
                 return;
             }
 
+            // Permissions endpoint
+            if (str_ends_with($userId, '/permissions')) {
+                $userId = substr($userId, 0, -12);
+                $this->handleUserPermissions($method, $userId);
+                return;
+            }
+
             // Single user endpoints
             switch ($method) {
                 case 'GET':
@@ -218,6 +231,63 @@ class UserApi
                     $this->error('Method not allowed', 405);
             }
         }
+    }
+
+    private function handleUserPermissions(string $method, string $userId): void
+    {
+        $user = $this->userManager->getById($userId);
+        if ($user === null) {
+            $this->error('User not found', 404);
+            return;
+        }
+
+        switch ($method) {
+            case 'GET':
+                $permissions = $user['permissions'] ?? ['full_access' => false, 'sections' => []];
+                $this->json(['success' => true, 'data' => $permissions]);
+                break;
+
+            case 'PUT':
+                $data = $this->getJsonInput();
+
+                // Validate CSRF
+                if (!Auth::validateCsrf($data['csrf_token'] ?? null)) {
+                    $this->error('Invalid CSRF token', 403);
+                    return;
+                }
+
+                $permissions = $data['permissions'] ?? [];
+                try {
+                    $updatedUser = $this->userManager->updatePermissions($userId, $permissions);
+                    if ($updatedUser === null) {
+                        $this->error('User not found', 404);
+                        return;
+                    }
+                    $this->json(['success' => true, 'data' => $updatedUser]);
+                } catch (\RuntimeException $e) {
+                    $this->error($e->getMessage());
+                }
+                break;
+
+            default:
+                $this->error('Method not allowed', 405);
+        }
+    }
+
+    private function handleContentTree(string $method): void
+    {
+        Auth::requireAdmin();
+
+        if ($method !== 'GET') {
+            $this->error('Method not allowed', 405);
+            return;
+        }
+
+        $contentDir = dirname(__DIR__) . '/' . Config::get('content_dir', 'content');
+        $content = new Content($contentDir);
+        $tree = $content->getFullTree();
+
+        $this->json(['success' => true, 'data' => $tree]);
     }
 
     private function getJsonInput(): array

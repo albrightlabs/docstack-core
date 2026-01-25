@@ -420,8 +420,6 @@ $csrfToken = Auth::getCsrfToken();
             </div>
             <div class="modal-body">
                 <form id="user-form">
-                    <input type="hidden" id="user-id" name="id">
-
                     <div class="form-group">
                         <label class="form-label" for="user-name">Name</label>
                         <input type="text" class="form-input" id="user-name" name="name" required>
@@ -494,7 +492,6 @@ $csrfToken = Auth::getCsrfToken();
         var userModal = document.getElementById('user-modal');
         var deleteModal = document.getElementById('delete-user-modal');
         var userForm = document.getElementById('user-form');
-        var editingUserId = null;
         var deleteUserId = null;
 
         // Load users
@@ -536,19 +533,12 @@ $csrfToken = Auth::getCsrfToken();
                         '</div>' +
                     '</div>' +
                     '<div class="user-card-actions">' +
-                        (canEdit ? '<button type="button" class="btn btn-secondary btn-sm edit-user" data-id="' + user.id + '">Edit</button>' : '') +
+                        (canEdit ? '<a href="/docs/users/' + user.id + '/edit" class="btn btn-secondary btn-sm">Edit</a>' : '') +
                         (canDelete ? '<button type="button" class="btn btn-danger btn-sm delete-user" data-id="' + user.id + '" data-name="' + escapeHtml(user.name || user.email) + '">Delete</button>' : '') +
                         (!canEdit && !canDelete ? '<span class="text-muted" style="font-size: 12px;">Protected</span>' : '') +
                     '</div>' +
                 '</div>';
             }).join('');
-
-            // Bind edit buttons
-            usersList.querySelectorAll('.edit-user').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    editUser(this.dataset.id);
-                });
-            });
 
             // Bind delete buttons
             usersList.querySelectorAll('.delete-user').forEach(function(btn) {
@@ -560,58 +550,30 @@ $csrfToken = Auth::getCsrfToken();
             });
         }
 
-        function editUser(id) {
-            var user = users.find(function(u) { return u.id === id; });
-            if (!user) return;
-
-            editingUserId = id;
-            document.getElementById('user-modal-title').textContent = 'Edit User';
-            document.getElementById('user-id').value = user.id;
-            document.getElementById('user-name').value = user.name || '';
-            document.getElementById('user-email').value = user.email;
-            document.getElementById('user-password').value = '';
-            document.getElementById('user-password-confirm').value = '';
-            document.getElementById('user-password').required = false;
-            document.getElementById('user-password-confirm').required = false;
-            document.getElementById('password-help').textContent = 'Leave blank to keep current password';
-            document.getElementById('password-match-error').style.display = 'none';
-            document.getElementById('user-role').value = user.role;
-            document.getElementById('user-role').disabled = user.is_super_admin;
-            userModal.classList.add('show');
-        }
-
         // Add user button
         var addBtn = document.getElementById('add-user-btn');
         if (addBtn) {
             addBtn.addEventListener('click', function() {
-                editingUserId = null;
-                document.getElementById('user-modal-title').textContent = 'Add User';
-                document.getElementById('user-id').value = '';
                 document.getElementById('user-name').value = '';
                 document.getElementById('user-email').value = '';
                 document.getElementById('user-password').value = '';
                 document.getElementById('user-password-confirm').value = '';
-                document.getElementById('user-password').required = true;
-                document.getElementById('user-password-confirm').required = true;
-                document.getElementById('password-help').textContent = 'Minimum 8 characters';
                 document.getElementById('password-match-error').style.display = 'none';
                 document.getElementById('user-role').value = 'readonly';
-                document.getElementById('user-role').disabled = false;
                 userModal.classList.add('show');
             });
         }
 
-        // Form submit
+        // Form submit (create user only - edit is on separate page)
         userForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            var id = document.getElementById('user-id').value;
             var password = document.getElementById('user-password').value;
             var passwordConfirm = document.getElementById('user-password-confirm').value;
             var passwordMatchError = document.getElementById('password-match-error');
 
             // Validate password confirmation
-            if (password && password !== passwordConfirm) {
+            if (password !== passwordConfirm) {
                 passwordMatchError.style.display = 'block';
                 return;
             }
@@ -620,19 +582,13 @@ $csrfToken = Auth::getCsrfToken();
             var data = {
                 name: document.getElementById('user-name').value,
                 email: document.getElementById('user-email').value,
+                password: password,
                 role: document.getElementById('user-role').value,
                 csrf_token: window.CSRF_TOKEN
             };
 
-            if (password) {
-                data.password = password;
-            }
-
-            var url = id ? '/docs/api/users/' + id : '/docs/api/users';
-            var method = id ? 'PUT' : 'POST';
-
-            fetch(url, {
-                method: method,
+            fetch('/docs/api/users', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
@@ -642,7 +598,7 @@ $csrfToken = Auth::getCsrfToken();
                     userModal.classList.remove('show');
                     loadUsers();
                 } else {
-                    alert(result.error || 'Failed to save user');
+                    alert(result.error || 'Failed to create user');
                 }
             });
         });

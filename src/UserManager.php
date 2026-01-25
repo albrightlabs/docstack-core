@@ -96,6 +96,10 @@ class UserManager
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
             'role' => $role,
             'is_super_admin' => $isSuperAdmin,
+            'permissions' => [
+                'full_access' => ($role === 'admin'),
+                'sections' => [],
+            ],
             'created_at' => date('c'),
             'updated_at' => date('c'),
             'last_login_at' => null,
@@ -205,5 +209,146 @@ class UserManager
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    /**
+     * Update user permissions
+     */
+    public function updatePermissions(string $id, array $permissions): ?array
+    {
+        foreach ($this->data['users'] as &$user) {
+            if ($user['id'] === $id) {
+                // Validate permissions structure
+                $validPermissions = [
+                    'full_access' => isset($permissions['full_access']) ? (bool)$permissions['full_access'] : false,
+                    'sections' => [],
+                ];
+
+                // Validate sections array
+                if (isset($permissions['sections']) && is_array($permissions['sections'])) {
+                    foreach ($permissions['sections'] as $section) {
+                        if (is_string($section) && !empty(trim($section))) {
+                            $validPermissions['sections'][] = trim($section);
+                        }
+                    }
+                }
+
+                $user['permissions'] = $validPermissions;
+                $user['updated_at'] = date('c');
+                $this->save();
+
+                $result = $user;
+                unset($result['password_hash']);
+                return $result;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if user has access to a specific content path
+     */
+    public function hasContentAccess(string $userId, string $contentPath): bool
+    {
+        $user = null;
+        foreach ($this->data['users'] as $u) {
+            if ($u['id'] === $userId) {
+                $user = $u;
+                break;
+            }
+        }
+
+        if ($user === null) {
+            return false;
+        }
+
+        // Super admins and admins with full_access can access everything
+        if ($user['is_super_admin']) {
+            return true;
+        }
+
+        $permissions = $user['permissions'] ?? ['full_access' => false, 'sections' => []];
+
+        if ($permissions['full_access']) {
+            return true;
+        }
+
+        // Check if contentPath matches or is within any allowed section
+        $contentPath = trim($contentPath, '/');
+        foreach ($permissions['sections'] as $allowedPath) {
+            $allowedPath = trim($allowedPath, '/');
+            // Exact match or content is within the allowed path
+            if ($contentPath === $allowedPath || str_starts_with($contentPath, $allowedPath . '/')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get all paths user can navigate (includes ancestors of accessible content)
+     */
+    public function getNavigationPaths(string $userId): array
+    {
+        $user = null;
+        foreach ($this->data['users'] as $u) {
+            if ($u['id'] === $userId) {
+                $user = $u;
+                break;
+            }
+        }
+
+        if ($user === null) {
+            return [];
+        }
+
+        // Super admins can see everything
+        if ($user['is_super_admin']) {
+            return ['*'];
+        }
+
+        $permissions = $user['permissions'] ?? ['full_access' => false, 'sections' => []];
+
+        if ($permissions['full_access']) {
+            return ['*'];
+        }
+
+        // Build list of accessible paths + their ancestors
+        $navPaths = [];
+        foreach ($permissions['sections'] as $section) {
+            $section = trim($section, '/');
+            $navPaths[$section] = true;
+
+            // Add all ancestor paths for navigation
+            $parts = explode('/', $section);
+            $path = '';
+            foreach ($parts as $part) {
+                $path = $path ? $path . '/' . $part : $part;
+                $navPaths[$path] = true;
+            }
+        }
+
+        return array_keys($navPaths);
+    }
+
+    /**
+     * Check if a path is nav-only (user can see it for navigation but not access content)
+     */
+    public function isNavOnly(string $userId, string $contentPath): bool
+    {
+        // If user has content access, it's not nav-only
+        if ($this->hasContentAccess($userId, $contentPath)) {
+            return false;
+        }
+
+        // If path is in navigation paths but not content accessible, it's nav-only
+        $navPaths = $this->getNavigationPaths($userId);
+        if (in_array('*', $navPaths)) {
+            return false;
+        }
+
+        $contentPath = trim($contentPath, '/');
+        return in_array($contentPath, $navPaths);
     }
 }

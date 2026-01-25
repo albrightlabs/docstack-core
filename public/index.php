@@ -26,27 +26,6 @@ $markdown = new Markdown();
 // Initialize auth (starts session)
 Auth::init();
 
-// Check if section is protected
-function isSectionProtected(string $contentDir, string $section): bool {
-    $entries = scandir($contentDir);
-    if ($entries === false) {
-        return false;
-    }
-    foreach ($entries as $entry) {
-        if ($entry === '.' || $entry === '..') {
-            continue;
-        }
-        if (getSlug($entry) === $section && is_dir($contentDir . '/' . $entry)) {
-            return file_exists($contentDir . '/' . $entry . '/.protected');
-        }
-    }
-    return false;
-}
-
-function isAuthenticated(string $section): bool {
-    return isset($_SESSION['auth_sections'][$section]) && $_SESSION['auth_sections'][$section] === true;
-}
-
 // Get requested path from URL
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 $path = trim($requestUri, '/');
@@ -183,6 +162,34 @@ if ($path === 'users') {
     exit;
 }
 
+// Handle user edit page (admin only)
+if (preg_match('#^users/([a-f0-9-]+)/edit$#', $path, $matches)) {
+    if (!Auth::check()) {
+        header('Location: /docs/login');
+        exit;
+    }
+    if (!Auth::isAdmin()) {
+        http_response_code(403);
+        include __DIR__ . '/../templates/403.php';
+        exit;
+    }
+
+    $userId = $matches[1];
+    $editUser = Auth::getUserManager()->getById($userId);
+
+    if (!$editUser) {
+        http_response_code(404);
+        $pageTitle = 'User Not Found';
+        include __DIR__ . '/../templates/404.php';
+        exit;
+    }
+
+    $currentUser = Auth::getCurrentUser();
+    $contentTree = $content->getFullTree();
+    include __DIR__ . '/../templates/user-edit.php';
+    exit;
+}
+
 // Get sections for tabs
 $sections = $content->getSections();
 
@@ -205,39 +212,33 @@ foreach ($sections as $section) {
     }
 }
 
-// Check password protection
-$authError = null;
-$isProtected = $sectionExists && isSectionProtected($content->getContentDir(), $currentSection);
-$needsAuth = $isProtected && !isAuthenticated($currentSection);
-
-// Handle password submission
-if ($isProtected && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
-    $correctPassword = Config::get('docs_password', '');
-    if ($_POST['password'] === $correctPassword && !empty($correctPassword)) {
-        $_SESSION['auth_sections'][$currentSection] = true;
-        header('Location: ' . $_SERVER['REQUEST_URI']);
-        exit;
-    }
-    $authError = 'Incorrect password. Please try again.';
-    $needsAuth = true;
-}
-
-// Show password form if needed
-if ($needsAuth) {
-    $pageTitle = 'Password Required';
-    $sectionName = '';
-    foreach ($sections as $s) {
-        if ($s['slug'] === $currentSection) {
-            $sectionName = $s['name'];
-            break;
+// Get user's permission paths for filtering
+$userContentPaths = [];
+$userNavPaths = [];
+if (Auth::check()) {
+    $userNavPaths = Auth::getNavigationPaths();
+    // Content paths are the sections array from user permissions
+    $userId = Auth::getCurrentUserId();
+    if ($userId) {
+        $userPerms = Auth::getUserManager()->getById($userId)['permissions'] ?? ['full_access' => false, 'sections' => []];
+        if ($userPerms['full_access'] || Auth::isAdmin()) {
+            $userContentPaths = ['*'];
+        } else {
+            $userContentPaths = $userPerms['sections'] ?? [];
         }
     }
-    include __DIR__ . '/../templates/password.php';
-    exit;
 }
 
-// Load sidebar tree for current section
-$tree = $sectionExists ? $content->getTree($currentSection) : [];
+// Load sidebar tree for current section (filtered by permissions)
+if ($sectionExists) {
+    if (in_array('*', $userNavPaths)) {
+        $tree = $content->getTree($currentSection);
+    } else {
+        $tree = $content->getFilteredTree($currentSection, $userContentPaths, $userNavPaths);
+    }
+} else {
+    $tree = [];
+}
 
 // Load requested doc
 $doc = $content->getDoc($path ?: 'index');
@@ -247,6 +248,40 @@ if (!$doc) {
     $pageTitle = 'Page Not Found';
     $currentPath = $path ?: '';
     include __DIR__ . '/../templates/404.php';
+    exit;
+}
+
+// Check content access permissions
+if (Auth::check() && !Auth::canAccessContent($path)) {
+    // Check if this is a nav-only path
+    if (Auth::isNavOnly($path)) {
+        // Show nav-only message within the layout
+        $pageTitle = 'Navigate to Content';
+        $currentPath = $path ?: '';
+        $isNavOnlyPage = true;
+        $html = '<div class="nav-only-container">
+            <div class="nav-only-icon">&#128194;</div>
+            <h1 class="nav-only-title">Navigate to Content</h1>
+            <p class="nav-only-message">You don\'t have access to view this page directly, but you can navigate to sub-pages you have access to using the sidebar.</p>
+            <p class="nav-only-hint">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                Select a page from the sidebar
+            </p>
+        </div>';
+        $headings = [];
+        $breadcrumb = [];
+        $isAdmin = Auth::isAuthenticated() && Auth::isAdmin();
+        $csrfToken = Auth::getCsrfToken();
+        $currentUser = Auth::getCurrentUser();
+        include __DIR__ . '/../templates/layout.php';
+        exit;
+    }
+
+    // No access at all
+    http_response_code(403);
+    include __DIR__ . '/../templates/403.php';
     exit;
 }
 

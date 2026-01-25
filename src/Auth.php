@@ -308,6 +308,57 @@ class Auth
         return isset($_SESSION['is_super_admin']) && $_SESSION['is_super_admin'] === true;
     }
 
+    /**
+     * Check if current user can access specific content path
+     */
+    public static function canAccessContent(string $path): bool
+    {
+        if (!self::check()) {
+            return false;
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if ($userId === null) {
+            return false;
+        }
+
+        return self::getUserManager()->hasContentAccess($userId, $path);
+    }
+
+    /**
+     * Get navigation paths for current user
+     */
+    public static function getNavigationPaths(): array
+    {
+        if (!self::check()) {
+            return [];
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if ($userId === null) {
+            return [];
+        }
+
+        return self::getUserManager()->getNavigationPaths($userId);
+    }
+
+    /**
+     * Check if path is navigation-only (can see but not access content)
+     */
+    public static function isNavOnly(string $path): bool
+    {
+        if (!self::check()) {
+            return false;
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if ($userId === null) {
+            return false;
+        }
+
+        return self::getUserManager()->isNavOnly($userId, $path);
+    }
+
     public static function getCurrentUser(): ?array
     {
         if (!self::check()) {

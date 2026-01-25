@@ -626,6 +626,22 @@ a:hover {
     font-weight: 500;
 }
 
+/* Nav-only items (visible for navigation but not accessible) */
+.sidebar-link.nav-only,
+.sidebar-section-header.nav-only span:first-child {
+    color: var(--text-muted);
+    font-style: italic;
+    cursor: default;
+}
+
+.sidebar-link.nav-only:hover {
+    color: var(--text-muted);
+}
+
+.sidebar-section.nav-only > .sidebar-section-header {
+    color: var(--text-muted);
+}
+
 /* Content area */
 .content {
     max-width: 900px;

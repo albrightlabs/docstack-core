@@ -453,4 +453,109 @@ class Content
     {
         return $this->getTree($section);
     }
+
+    /**
+     * Get complete tree with all sections (used for permission management)
+     */
+    public function getFullTree(): array
+    {
+        $sections = $this->getSections();
+        $fullTree = [];
+
+        foreach ($sections as $section) {
+            $sectionTree = $this->getTree($section['slug']);
+            $fullTree[] = [
+                'type' => 'section',
+                'name' => $section['name'],
+                'slug' => $section['slug'],
+                'children' => $sectionTree,
+            ];
+        }
+
+        return $fullTree;
+    }
+
+    /**
+     * Get filtered tree based on user's navigation paths
+     * Marks items as nav_only if user can navigate but not access content
+     */
+    public function getFilteredTree(?string $section, array $contentPaths, array $navPaths): array
+    {
+        $tree = $this->getTree($section);
+
+        // If user has full access (wildcard), return tree as-is
+        if (in_array('*', $navPaths) || in_array('*', $contentPaths)) {
+            return $tree;
+        }
+
+        return $this->filterTreeByPaths($tree, $contentPaths, $navPaths);
+    }
+
+    /**
+     * Recursively filter tree items based on access paths
+     */
+    private function filterTreeByPaths(array $items, array $contentPaths, array $navPaths): array
+    {
+        $filtered = [];
+
+        foreach ($items as $item) {
+            $slug = $item['slug'];
+            $hasContentAccess = $this->pathMatchesAny($slug, $contentPaths);
+            $hasNavAccess = in_array($slug, $navPaths) || $hasContentAccess;
+
+            // Skip items the user can't even navigate to
+            if (!$hasNavAccess) {
+                // But check if any children are accessible
+                if ($item['type'] === 'dir' && !empty($item['children'])) {
+                    $filteredChildren = $this->filterTreeByPaths($item['children'], $contentPaths, $navPaths);
+                    if (!empty($filteredChildren)) {
+                        // Has accessible children, so this becomes nav-only
+                        $filtered[] = [
+                            'type' => $item['type'],
+                            'name' => $item['name'],
+                            'slug' => $item['slug'],
+                            'children' => $filteredChildren,
+                            'nav_only' => true,
+                        ];
+                    }
+                }
+                continue;
+            }
+
+            $newItem = [
+                'type' => $item['type'],
+                'name' => $item['name'],
+                'slug' => $item['slug'],
+            ];
+
+            // Mark as nav_only if user can navigate but not access content
+            if (!$hasContentAccess) {
+                $newItem['nav_only'] = true;
+            }
+
+            // Process children for directories
+            if ($item['type'] === 'dir' && !empty($item['children'])) {
+                $newItem['children'] = $this->filterTreeByPaths($item['children'], $contentPaths, $navPaths);
+            }
+
+            $filtered[] = $newItem;
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * Check if path matches any of the allowed paths (exact or descendant)
+     */
+    private function pathMatchesAny(string $path, array $allowedPaths): bool
+    {
+        $path = trim($path, '/');
+        foreach ($allowedPaths as $allowed) {
+            $allowed = trim($allowed, '/');
+            if ($path === $allowed || str_starts_with($path, $allowed . '/')) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
