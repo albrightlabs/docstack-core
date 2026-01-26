@@ -273,6 +273,7 @@ if (Auth::check() && !Auth::canAccessContent($path)) {
         $headings = [];
         $breadcrumb = [];
         $isAdmin = Auth::isAuthenticated() && Auth::isAdmin();
+        $canEdit = Auth::isAuthenticated() && Auth::canEditContent();
         $csrfToken = Auth::getCsrfToken();
         $currentUser = Auth::getCurrentUser();
         include __DIR__ . '/../templates/layout.php';
@@ -305,6 +306,7 @@ $currentPath = $path ?: 'index';
 
 // Admin state for templates
 $isAdmin = Auth::isAuthenticated() && Auth::isAdmin();
+$canEdit = Auth::isAuthenticated() && Auth::canEditContent();
 $csrfToken = Auth::getCsrfToken();
 $currentUser = Auth::getCurrentUser();
 

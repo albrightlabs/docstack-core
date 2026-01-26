@@ -85,7 +85,7 @@ class UserManager
             throw new \RuntimeException('A user with this email already exists');
         }
 
-        if (!in_array($role, ['admin', 'readonly'])) {
+        if (!in_array($role, ['admin', 'editor', 'readonly'])) {
             $role = 'readonly';
         }
 
@@ -97,7 +97,7 @@ class UserManager
             'role' => $role,
             'is_super_admin' => $isSuperAdmin,
             'permissions' => [
-                'full_access' => ($role === 'admin'),
+                'full_access' => ($role === 'admin' || $role === 'editor'),
                 'sections' => [],
             ],
             'created_at' => date('c'),
@@ -134,7 +134,7 @@ class UserManager
                 }
 
                 if (isset($data['role']) && !$user['is_super_admin']) {
-                    if (in_array($data['role'], ['admin', 'readonly'])) {
+                    if (in_array($data['role'], ['admin', 'editor', 'readonly'])) {
                         $user['role'] = $data['role'];
                     }
                 }
@@ -262,8 +262,8 @@ class UserManager
             return false;
         }
 
-        // Super admins and admins always have full access
-        if ($user['is_super_admin'] || $user['role'] === 'admin') {
+        // Super admins, admins, and editors always have full access
+        if ($user['is_super_admin'] || $user['role'] === 'admin' || $user['role'] === 'editor') {
             return true;
         }
 
@@ -303,8 +303,8 @@ class UserManager
             return [];
         }
 
-        // Super admins and admins can see everything
-        if ($user['is_super_admin'] || $user['role'] === 'admin') {
+        // Super admins, admins, and editors can see everything
+        if ($user['is_super_admin'] || $user['role'] === 'admin' || $user['role'] === 'editor') {
             return ['*'];
         }
 

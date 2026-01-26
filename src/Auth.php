@@ -302,6 +302,21 @@ class Auth
         return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'readonly';
     }
 
+    public static function isEditor(): bool
+    {
+        self::init();
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'editor';
+    }
+
+    /**
+     * Check if current user can edit content (admin or editor)
+     */
+    public static function canEditContent(): bool
+    {
+        self::init();
+        return self::isAdmin() || self::isEditor();
+    }
+
     public static function isSuperAdmin(): bool
     {
         self::init();

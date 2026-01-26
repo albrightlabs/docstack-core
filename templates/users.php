@@ -139,6 +139,11 @@ $csrfToken = Auth::getCsrfToken();
             color: #1d4ed8;
         }
 
+        .role-editor {
+            background: #dcfce7;
+            color: #166534;
+        }
+
         .role-readonly {
             background: #f3f4f6;
             color: #6b7280;
@@ -157,6 +162,11 @@ $csrfToken = Auth::getCsrfToken();
             .role-admin {
                 background: #1e3a5f;
                 color: #60a5fa;
+            }
+
+            .role-editor {
+                background: #14532d;
+                color: #86efac;
             }
 
             .role-readonly {
@@ -372,7 +382,10 @@ $csrfToken = Auth::getCsrfToken();
                     <div class="user-menu-info">
                         <span class="user-menu-name"><?= htmlspecialchars($currentUser['name'] ?? '') ?></span>
                         <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                        <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?= ($currentUser['role'] ?? 'admin') === 'admin' ? 'Admin' : 'Read-Only' ?></span>
+                        <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?php
+                            $role = $currentUser['role'] ?? 'readonly';
+                            echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
+                        ?></span>
                     </div>
                     <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -445,7 +458,8 @@ $csrfToken = Auth::getCsrfToken();
                     <div class="form-group">
                         <label class="form-label" for="user-role">Role</label>
                         <select class="form-select" id="user-role" name="role" required>
-                            <option value="admin">Admin (Full Access)</option>
+                            <option value="admin">Admin (Full Access + User Management)</option>
+                            <option value="editor">Editor (Full Access)</option>
                             <option value="readonly">Read-Only (View Only)</option>
                         </select>
                     </div>
@@ -528,7 +542,7 @@ $csrfToken = Auth::getCsrfToken();
                         '<span class="user-card-name">' + escapeHtml(user.name || '') + '</span>' +
                         '<span class="user-card-email">' + escapeHtml(user.email) + '</span>' +
                         '<div class="user-card-meta">' +
-                            '<span class="role-badge role-' + user.role + '">' + (user.role === 'admin' ? 'Admin' : 'Read-Only') + '</span>' +
+                            '<span class="role-badge role-' + user.role + '">' + (user.role === 'admin' ? 'Admin' : (user.role === 'editor' ? 'Editor' : 'Read-Only')) + '</span>' +
                             (user.is_super_admin ? '<span class="super-admin-badge">Super Admin</span>' : '') +
                         '</div>' +
                     '</div>' +

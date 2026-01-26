@@ -47,7 +47,7 @@
                     <?php endforeach; ?>
                 </nav>
                 <div class="header-right">
-                    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
+                    <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
                     <div class="admin-controls">
                         <span id="admin-badge" class="admin-badge">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
@@ -78,7 +78,10 @@
                         <div class="user-menu-dropdown" id="user-menu-dropdown">
                             <div class="user-menu-info">
                                 <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                                <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?= ($currentUser['role'] ?? 'admin') === 'admin' ? 'Admin' : 'Read-Only' ?></span>
+                                <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?php
+                                    $role = $currentUser['role'] ?? 'readonly';
+                                    echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
+                                ?></span>
                             </div>
                             <?php if (\App\Auth::isAdmin()): ?>
                             <a href="/docs/users" class="user-menu-item">
@@ -154,17 +157,17 @@
         <?php endif; ?>
     </div>
 
-    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
+    <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
     <?php include __DIR__ . '/admin-login.php'; ?>
     <?php endif; ?>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
+    <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <?php endif; ?>
     <script src="/assets/app.js"></script>
-    <?php if (\App\Config::feature('editing') && \App\Auth::isAdmin()): ?>
+    <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
     <script src="/assets/admin.js"></script>
     <script>
     // Pass admin state to JavaScript

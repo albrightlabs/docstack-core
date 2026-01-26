@@ -382,7 +382,10 @@ $csrfToken = Auth::getCsrfToken();
                     <div class="user-menu-info">
                         <span class="user-menu-name"><?= htmlspecialchars($currentUser['name'] ?? '') ?></span>
                         <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                        <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?= ($currentUser['role'] ?? 'admin') === 'admin' ? 'Admin' : 'Read-Only' ?></span>
+                        <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?php
+                            $role = $currentUser['role'] ?? 'readonly';
+                            echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
+                        ?></span>
                     </div>
                     <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -453,7 +456,8 @@ $csrfToken = Auth::getCsrfToken();
                 <div class="form-group">
                     <label class="form-label" for="user-role">Role</label>
                     <select class="form-select" id="user-role" name="role" <?= ($editUser['is_super_admin'] ?? false) ? 'disabled' : '' ?>>
-                        <option value="admin" <?= ($editUser['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin (Full Access)</option>
+                        <option value="admin" <?= ($editUser['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin (Full Access + User Management)</option>
+                        <option value="editor" <?= ($editUser['role'] ?? '') === 'editor' ? 'selected' : '' ?>>Editor (Full Access)</option>
                         <option value="readonly" <?= ($editUser['role'] ?? '') === 'readonly' ? 'selected' : '' ?>>Read-Only (View Only)</option>
                     </select>
                     <?php if ($editUser['is_super_admin'] ?? false): ?>
