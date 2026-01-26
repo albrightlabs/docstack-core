@@ -16,7 +16,11 @@ function renderTree(array $items, string $currentPath, string $parentSlug = '', 
         <?php if ($item['type'] === 'dir'): ?>
         <div class="sidebar-section<?= $navOnlyClass ?>">
             <div class="sidebar-section-header<?= $navOnlyClass ?>">
+                <?php if ($isNavOnly): ?>
                 <span><?= $itemName ?></span>
+                <?php else: ?>
+                <a href="/docs/<?= $itemSlug ?>" class="sidebar-section-link"><?= $itemName ?></a>
+                <?php endif; ?>
                 <?php if (!$isNavOnly): ?>
                 <span class="sidebar-item-actions admin-only" style="display: none;">
                     <button class="sidebar-action-btn" onclick="event.stopPropagation(); AdminEditor.showCreateModal('<?= $itemSlug ?>')" title="Add new">
