@@ -225,14 +225,69 @@ $csrfToken = Auth::getCsrfToken();
         }
 
         .tree-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
             width: 18px;
             height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
             cursor: pointer;
-            accent-color: var(--accent-color);
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+
+        .tree-checkbox:hover {
+            border-color: var(--accent-color);
+        }
+
+        .tree-checkbox:checked {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .tree-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .tree-checkbox:indeterminate {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .tree-checkbox:indeterminate::after {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 6px;
+            width: 8px;
+            height: 2px;
+            background: white;
         }
 
         .tree-checkbox:disabled {
             cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .tree-checkbox {
+                border-color: #555;
+                background: var(--bg-tertiary);
+            }
+
+            .tree-checkbox:hover {
+                border-color: var(--accent-color);
+            }
         }
 
         .tree-label {
