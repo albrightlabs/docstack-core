@@ -202,48 +202,10 @@ $csrfToken = Auth::getCsrfToken();
         }
 
         /* Permission tree styles */
-        .permission-option {
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            padding: var(--space-3) 0;
-        }
-
-        .permission-option.full-access {
-            padding: var(--space-4);
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--space-4);
-        }
-
-        .permission-divider {
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            margin: var(--space-4) 0;
-            color: var(--text-muted);
-            font-size: 13px;
-        }
-
-        .permission-divider::before,
-        .permission-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border-color);
-        }
-
         .permission-tree {
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             padding: var(--space-4);
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .permission-tree.disabled {
-            opacity: 0.5;
-            pointer-events: none;
         }
 
         .tree-item {
@@ -462,13 +424,6 @@ $csrfToken = Auth::getCsrfToken();
             </div>
             <?php else: ?>
             <form id="permissions-form">
-                <div class="permission-option full-access">
-                    <input type="checkbox" id="full-access" class="tree-checkbox">
-                    <label for="full-access" class="tree-label"><strong>Full Access</strong> - Can access all content</label>
-                </div>
-
-                <div class="permission-divider">Or select specific sections</div>
-
                 <div class="select-all-row">
                     <input type="checkbox" id="select-all" class="tree-checkbox">
                     <label for="select-all" class="tree-label">Select All</label>
@@ -495,7 +450,6 @@ $csrfToken = Auth::getCsrfToken();
     document.addEventListener('DOMContentLoaded', function() {
         var contentTree = [];
         var permissionTree = document.getElementById('permission-tree');
-        var fullAccessCheckbox = document.getElementById('full-access');
         var selectAllCheckbox = document.getElementById('select-all');
 
         // Show status message
@@ -641,16 +595,8 @@ $csrfToken = Auth::getCsrfToken();
         function applyCurrentPermissions() {
             var perms = window.CURRENT_PERMISSIONS;
 
-            if (perms.full_access) {
-                fullAccessCheckbox.checked = true;
-                permissionTree.classList.add('disabled');
-                selectAllCheckbox.disabled = true;
-            } else {
-                fullAccessCheckbox.checked = false;
-                permissionTree.classList.remove('disabled');
-                selectAllCheckbox.disabled = false;
-
-                // Check items based on sections array
+            // Check items based on sections array
+            if (perms.sections && perms.sections.length > 0) {
                 perms.sections.forEach(function(section) {
                     var checkbox = permissionTree.querySelector('.tree-checkbox[data-path="' + section + '"]');
                     if (checkbox) {
@@ -663,23 +609,10 @@ $csrfToken = Auth::getCsrfToken();
                         });
                     }
                 });
-
-                updateParentStates();
-                updateSelectAllState();
             }
-        }
 
-        // Full access toggle
-        if (fullAccessCheckbox) {
-            fullAccessCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    permissionTree.classList.add('disabled');
-                    selectAllCheckbox.disabled = true;
-                } else {
-                    permissionTree.classList.remove('disabled');
-                    selectAllCheckbox.disabled = false;
-                }
-            });
+            updateParentStates();
+            updateSelectAllState();
         }
 
         // Select all toggle
@@ -744,21 +677,17 @@ $csrfToken = Auth::getCsrfToken();
             permissionsForm.addEventListener('submit', function(e) {
                 e.preventDefault();
 
+                // Collect checked paths (only top-level of checked subtrees)
+                var checkedPaths = [];
+                permissionTree.querySelectorAll('.tree-checkbox:checked').forEach(function(cb) {
+                    checkedPaths.push(cb.dataset.path);
+                });
+
+                // Filter to only include paths where parent is not checked
+                // (we only need the highest level checked paths)
                 var permissions = {
-                    full_access: fullAccessCheckbox.checked,
-                    sections: []
-                };
-
-                if (!permissions.full_access) {
-                    // Collect checked paths (only top-level of checked subtrees)
-                    var checkedPaths = [];
-                    permissionTree.querySelectorAll('.tree-checkbox:checked').forEach(function(cb) {
-                        checkedPaths.push(cb.dataset.path);
-                    });
-
-                    // Filter to only include paths where parent is not checked
-                    // (we only need the highest level checked paths)
-                    permissions.sections = checkedPaths.filter(function(path) {
+                    full_access: false,
+                    sections: checkedPaths.filter(function(path) {
                         var parts = path.split('/');
                         if (parts.length === 1) return true;
 
@@ -770,8 +699,8 @@ $csrfToken = Auth::getCsrfToken();
                             }
                         }
                         return true;
-                    });
-                }
+                    })
+                };
 
                 fetch('/docs/api/users/' + window.USER_ID + '/permissions', {
                     method: 'PUT',
