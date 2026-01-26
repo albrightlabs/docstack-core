@@ -40,8 +40,8 @@ if ($method === 'OPTIONS') {
 $path = preg_replace('/^\/docs/', '', $requestUri);
 
 // Route to appropriate API handler
-if (str_starts_with($path, '/api/auth/') || str_starts_with($path, '/api/users')) {
-    // User and auth endpoints
+if (str_starts_with($path, '/api/auth/') || str_starts_with($path, '/api/users') || $path === '/api/content/tree') {
+    // User, auth, and content tree endpoints
     $userApi = new UserApi();
     $userApi->handle($method, $path);
 } else {
