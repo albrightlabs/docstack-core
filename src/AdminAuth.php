@@ -11,7 +11,7 @@ class AdminAuth
     private const SESSION_KEY = 'admin_authenticated';
     private const CSRF_KEY = 'admin_csrf_token';
     private const LAST_ACTIVITY_KEY = 'admin_last_activity';
-    private const SESSION_TIMEOUT = 7200; // 2 hours
+    private const SESSION_TIMEOUT = 86400; // 24 hours
 
     /**
      * Check if admin is currently authenticated

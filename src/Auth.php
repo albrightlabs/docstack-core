@@ -6,7 +6,7 @@ namespace App;
 
 class Auth
 {
-    private const SESSION_LIFETIME = 7200; // 2 hours
+    private const SESSION_LIFETIME = 86400; // 24 hours
     private const MAX_LOGIN_ATTEMPTS = 5;
     private const LOCKOUT_DURATION = 900; // 15 minutes
     private const SESSION_KEYS = [
