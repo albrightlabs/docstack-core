@@ -262,8 +262,8 @@ class UserManager
             return false;
         }
 
-        // Super admins and admins with full_access can access everything
-        if ($user['is_super_admin']) {
+        // Super admins and admins always have full access
+        if ($user['is_super_admin'] || $user['role'] === 'admin') {
             return true;
         }
 
@@ -303,8 +303,8 @@ class UserManager
             return [];
         }
 
-        // Super admins can see everything
-        if ($user['is_super_admin']) {
+        // Super admins and admins can see everything
+        if ($user['is_super_admin'] || $user['role'] === 'admin') {
             return ['*'];
         }
 
