@@ -156,7 +156,18 @@ class Auth
             return ['count' => 0, 'last_attempt' => 0];
         }
 
-        $data = json_decode(file_get_contents($file), true) ?? [];
+        // Use shared lock for reading to prevent race conditions
+        $fp = fopen($file, 'r');
+        if ($fp === false) {
+            return ['count' => 0, 'last_attempt' => 0];
+        }
+
+        flock($fp, LOCK_SH);
+        $content = stream_get_contents($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        $data = json_decode($content, true) ?? [];
 
         // Clean up old entries while we're here
         $data = self::cleanupRateLimits($data);
@@ -167,11 +178,22 @@ class Auth
     private static function recordFailedAttempt(string $ip): void
     {
         $file = self::getRateLimitFile();
-        $data = [];
 
-        if (file_exists($file)) {
-            $data = json_decode(file_get_contents($file), true) ?? [];
+        $dir = dirname($file);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
         }
+
+        // Use exclusive lock for atomic read-modify-write
+        $fp = fopen($file, 'c+');
+        if ($fp === false) {
+            return;
+        }
+
+        flock($fp, LOCK_EX);
+
+        $content = stream_get_contents($fp);
+        $data = $content ? (json_decode($content, true) ?? []) : [];
 
         $data = self::cleanupRateLimits($data);
 
@@ -182,12 +204,12 @@ class Auth
         $data[$ip]['count']++;
         $data[$ip]['last_attempt'] = time();
 
-        $dir = dirname($file);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($data, JSON_PRETTY_PRINT));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
     }
 
     private static function clearFailedAttempts(string $ip): void
@@ -198,10 +220,25 @@ class Auth
             return;
         }
 
-        $data = json_decode(file_get_contents($file), true) ?? [];
+        // Use exclusive lock for atomic read-modify-write
+        $fp = fopen($file, 'c+');
+        if ($fp === false) {
+            return;
+        }
+
+        flock($fp, LOCK_EX);
+
+        $content = stream_get_contents($fp);
+        $data = $content ? (json_decode($content, true) ?? []) : [];
+
         unset($data[$ip]);
 
-        file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($data, JSON_PRETTY_PRINT));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
     }
 
     private static function cleanupRateLimits(array $data): array
@@ -262,7 +299,7 @@ class Auth
     }
 
     /**
-     * Alias for check() - for compatibility with AdminAuth
+     * Alias for check() - commonly used method name
      */
     public static function isAuthenticated(): bool
     {
@@ -287,7 +324,7 @@ class Auth
 
     public static function canWrite(): bool
     {
-        return self::isAdmin();
+        return self::canEditContent(); // Admin or Editor can write
     }
 
     public static function isAdmin(): bool
@@ -438,7 +475,7 @@ class Auth
     }
 
     /**
-     * Alias for validateCsrf() - for compatibility with AdminAuth
+     * Alias for validateCsrf()
      */
     public static function validateCsrfToken(?string $token): bool
     {
@@ -463,7 +500,7 @@ class Auth
     }
 
     /**
-     * Get authentication status for API response - for compatibility with AdminAuth
+     * Get authentication status for API response
      */
     public static function getStatus(): array
     {

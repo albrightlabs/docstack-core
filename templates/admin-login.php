@@ -1,4 +1,4 @@
-<div id="admin-login-modal" class="admin-modal" style="display: none;">
+<div id="admin-login-modal" class="admin-modal">
     <div class="admin-modal-backdrop" onclick="AdminEditor.closeLoginModal()"></div>
     <div class="admin-login-container">
         <div class="password-icon">🔐</div>
@@ -24,73 +24,92 @@
     </div>
 </div>
 
-<div id="admin-create-modal" class="admin-modal" style="display: none;">
-    <div class="admin-modal-backdrop"></div>
+<div id="admin-create-modal" class="admin-modal">
+    <div class="admin-modal-backdrop" onclick="AdminEditor.closeCreateModal()"></div>
     <div class="admin-modal-content">
         <div class="admin-modal-header">
             <h3>Create New</h3>
-            <button type="button" class="admin-modal-close" onclick="AdminEditor.closeCreateModal()">&times;</button>
+            <button type="button" class="admin-modal-close" onclick="AdminEditor.closeCreateModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
-        <form id="admin-create-form" onsubmit="AdminEditor.handleCreate(event)">
-            <div class="admin-form-group">
-                <label for="create-name">Name</label>
-                <input type="text" id="create-name" name="name" required placeholder="my-new-page">
-            </div>
-            <div class="admin-form-group">
-                <label class="admin-checkbox-label">
-                    <input type="checkbox" id="create-is-directory" name="is_directory">
-                    Create as folder
-                </label>
-            </div>
-            <input type="hidden" id="create-parent-path" name="parent_path" value="">
-            <div id="admin-create-error" class="admin-error" style="display: none;"></div>
-            <div class="admin-form-actions">
-                <button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeCreateModal()">Cancel</button>
-                <button type="submit" class="admin-btn admin-btn-primary">Create</button>
-            </div>
-        </form>
+        <div class="admin-modal-body">
+            <form id="admin-create-form" onsubmit="AdminEditor.handleCreate(event)">
+                <div class="admin-form-group">
+                    <label for="create-name">Name</label>
+                    <input type="text" id="create-name" name="name" required placeholder="my-new-page">
+                </div>
+                <div class="admin-form-group">
+                    <label class="admin-checkbox-label">
+                        <input type="checkbox" id="create-is-directory" name="is_directory">
+                        Create as folder
+                    </label>
+                </div>
+                <input type="hidden" id="create-parent-path" name="parent_path" value="">
+                <div id="admin-create-error" class="admin-error" style="display: none;"></div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeCreateModal()">Cancel</button>
+                    <button type="submit" class="admin-btn admin-btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div id="admin-delete-modal" class="admin-modal" style="display: none;">
-    <div class="admin-modal-backdrop"></div>
+<div id="admin-delete-modal" class="admin-modal">
+    <div class="admin-modal-backdrop" onclick="AdminEditor.closeDeleteModal()"></div>
     <div class="admin-modal-content">
         <div class="admin-modal-header">
             <h3>Confirm Delete</h3>
-            <button type="button" class="admin-modal-close" onclick="AdminEditor.closeDeleteModal()">&times;</button>
+            <button type="button" class="admin-modal-close" onclick="AdminEditor.closeDeleteModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
         <div class="admin-modal-body">
             <p>Are you sure you want to delete <strong id="delete-item-name"></strong>?</p>
-            <p class="admin-warning">This action cannot be undone. A backup will be created.</p>
-        </div>
-        <input type="hidden" id="delete-item-path" value="">
-        <div id="admin-delete-error" class="admin-error" style="display: none;"></div>
-        <div class="admin-form-actions">
-            <button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeDeleteModal()">Cancel</button>
-            <button type="button" class="admin-btn admin-btn-danger" onclick="AdminEditor.confirmDelete()">Delete</button>
+            <p class="admin-warning">This action cannot be undone.</p>
+            <input type="hidden" id="delete-item-path" value="">
+            <div id="admin-delete-error" class="admin-error" style="display: none;"></div>
+            <div class="admin-modal-actions">
+                <button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeDeleteModal()">Cancel</button>
+                <button type="button" class="admin-btn admin-btn-danger" onclick="AdminEditor.confirmDelete()">Delete</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="admin-rename-modal" class="admin-modal" style="display: none;">
-    <div class="admin-modal-backdrop"></div>
+<div id="admin-rename-modal" class="admin-modal">
+    <div class="admin-modal-backdrop" onclick="AdminEditor.closeRenameModal()"></div>
     <div class="admin-modal-content">
         <div class="admin-modal-header">
             <h3>Rename</h3>
-            <button type="button" class="admin-modal-close" onclick="AdminEditor.closeRenameModal()">&times;</button>
+            <button type="button" class="admin-modal-close" onclick="AdminEditor.closeRenameModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
-        <form id="admin-rename-form" onsubmit="AdminEditor.handleRename(event)">
-            <div class="admin-form-group">
-                <label for="rename-new-name">New Name</label>
-                <input type="text" id="rename-new-name" name="new_name" required>
-            </div>
-            <input type="hidden" id="rename-old-path" name="old_path" value="">
-            <div id="admin-rename-error" class="admin-error" style="display: none;"></div>
-            <div class="admin-form-actions">
-                <button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeRenameModal()">Cancel</button>
-                <button type="submit" class="admin-btn admin-btn-primary">Rename</button>
-            </div>
-        </form>
+        <div class="admin-modal-body">
+            <form id="admin-rename-form" onsubmit="AdminEditor.handleRename(event)">
+                <div class="admin-form-group">
+                    <label for="rename-new-name">Name</label>
+                    <input type="text" id="rename-new-name" name="new_name" required>
+                </div>
+                <input type="hidden" id="rename-old-path" name="old_path" value="">
+                <div id="admin-rename-error" class="admin-error" style="display: none;"></div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeRenameModal()">Cancel</button>
+                    <button type="submit" class="admin-btn admin-btn-primary">Rename</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

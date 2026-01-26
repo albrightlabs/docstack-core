@@ -232,3 +232,59 @@ function titleToSlug(string $title): string
 
     return $slug ?: 'untitled';
 }
+
+/**
+ * Strip emojis from a string
+ * Removes emoji characters while preserving regular text
+ */
+function stripEmojis(string $text): string
+{
+    // Remove emoji using grapheme clusters - matches emoji and their modifiers
+    // This pattern catches most emojis including compound ones (skin tones, ZWJ sequences)
+    $patterns = [
+        // Emoji with skin tone modifiers and ZWJ sequences
+        '/[\x{1F3FB}-\x{1F3FF}]/u',
+        // Zero-width joiner used in compound emojis
+        '/\x{200D}/u',
+        // Variation selectors
+        '/[\x{FE00}-\x{FE0F}]/u',
+        // Emoticons
+        '/[\x{1F600}-\x{1F64F}]/u',
+        // Misc Symbols and Pictographs
+        '/[\x{1F300}-\x{1F5FF}]/u',
+        // Transport and Map Symbols
+        '/[\x{1F680}-\x{1F6FF}]/u',
+        // Supplemental Symbols and Pictographs
+        '/[\x{1F900}-\x{1F9FF}]/u',
+        // Symbols and Pictographs Extended-A
+        '/[\x{1FA00}-\x{1FAFF}]/u',
+        // Misc Symbols
+        '/[\x{2600}-\x{26FF}]/u',
+        // Dingbats
+        '/[\x{2700}-\x{27BF}]/u',
+        // Enclosed Alphanumeric Supplement (circled letters, etc)
+        '/[\x{1F100}-\x{1F1FF}]/u',
+        // Regional indicator symbols (flags)
+        '/[\x{1F1E0}-\x{1F1FF}]/u',
+        // Mahjong and Playing Cards
+        '/[\x{1F000}-\x{1F0FF}]/u',
+        // Geometric shapes, arrows that are often used as emoji
+        '/[\x{25A0}-\x{25FF}]/u',
+        '/[\x{2B05}-\x{2B55}]/u',
+        // Keycap sequences
+        '/[\x{0023}\x{002A}\x{0030}-\x{0039}]\x{FE0F}?\x{20E3}/u',
+        // Copyright, TM, Registered symbols when displayed as emoji
+        '/[\x{00A9}\x{00AE}]\x{FE0F}/u',
+    ];
+
+    $result = $text;
+    foreach ($patterns as $pattern) {
+        $result = preg_replace($pattern, '', $result);
+    }
+
+    // Clean up any double spaces left behind
+    $result = preg_replace('/\s+/', ' ', $result);
+
+    // Trim any leading/trailing whitespace
+    return trim($result);
+}

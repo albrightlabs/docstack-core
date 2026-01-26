@@ -811,5 +811,17 @@ $csrfToken = Auth::getCsrfToken();
         loadContentTree();
     });
     </script>
+
+    <script src="/assets/favicon.js"></script>
+    <script>
+    FaviconGenerator.init({
+        faviconUrl: <?= json_encode($branding['favicon_url']) ?>,
+        faviconEmoji: <?= json_encode($branding['favicon_emoji']) ?>,
+        siteEmoji: <?= json_encode($branding['site_emoji']) ?>,
+        siteName: <?= json_encode($branding['site_name']) ?>,
+        faviconLetter: <?= json_encode($branding['favicon_letter']) ?>,
+        faviconShowLetter: <?= json_encode($branding['favicon_show_letter']) ?>
+    });
+    </script>
 </body>
 </html>

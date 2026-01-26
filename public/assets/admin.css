@@ -11,41 +11,38 @@
 .admin-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
     font-weight: 500;
-    border-radius: 0.375rem;
-    border: 1px solid transparent;
+    border-radius: 6px;
+    border: none;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s;
     text-decoration: none;
 }
 
 .admin-btn-primary {
-    background-color: var(--primary-color);
+    background-color: var(--accent-color, var(--primary-color));
     color: white;
-    border-color: var(--primary-color);
 }
 
 .admin-btn-primary:hover {
-    background-color: var(--primary-hover);
+    background-color: var(--accent-hover, var(--primary-hover));
 }
 
 .admin-btn-secondary {
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
-    border-color: var(--border-color);
 }
 
 .admin-btn-secondary:hover {
-    background-color: var(--bg-tertiary);
+    background-color: var(--border-color);
 }
 
 .admin-btn-danger {
     background-color: #dc2626;
     color: white;
-    border-color: #dc2626;
 }
 
 .admin-btn-danger:hover {
@@ -55,11 +52,10 @@
 .admin-btn-ghost {
     background: transparent;
     color: var(--text-secondary);
-    border-color: transparent;
 }
 
 .admin-btn-ghost:hover {
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
 }
 
@@ -115,11 +111,12 @@
     position: relative;
     background-color: var(--bg-primary);
     border-radius: 12px;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     width: 100%;
-    max-width: 500px;
+    max-width: 400px;
     max-height: 90vh;
     overflow-y: auto;
+    margin: 20px;
     transform: translateY(20px);
     transition: transform 0.2s ease;
 }
@@ -147,19 +144,20 @@
 .admin-modal-close {
     background: none;
     border: none;
-    font-size: 1.5rem;
     color: var(--text-muted);
     cursor: pointer;
-    line-height: 1;
     padding: 4px;
     border-radius: 4px;
     flex-shrink: 0;
-    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, color 0.15s;
 }
 
 .admin-modal-close:hover {
     color: var(--text-primary);
-    background-color: var(--bg-hover);
+    background-color: var(--bg-tertiary);
 }
 
 .admin-modal-body {
@@ -213,29 +211,30 @@
 }
 
 .admin-form-group {
-    padding: 0 1.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
 }
 
-.admin-form-group:first-child {
-    padding-top: 1.5rem;
+.admin-form-group:last-of-type {
+    margin-bottom: 0;
 }
 
 .admin-form-group label {
     display: block;
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 500;
-    margin-bottom: 0.375rem;
-    color: var(--text-primary);
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .admin-form-group input[type="text"],
 .admin-form-group input[type="password"] {
     width: 100%;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 10px 12px;
+    font-size: 14px;
     border: 1px solid var(--border-color);
-    border-radius: 0.375rem;
+    border-radius: 6px;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     box-sizing: border-box;
@@ -243,8 +242,8 @@
 
 .admin-form-group input:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: var(--accent-color, var(--primary-color));
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
 }
 
 .admin-checkbox-label {
@@ -261,24 +260,23 @@
     cursor: pointer;
 }
 
-.admin-form-actions {
+.admin-form-actions,
+.admin-modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
+    gap: 8px;
+    margin-top: 20px;
 }
 
 .admin-error {
-    padding: 0.5rem 1.5rem;
     color: #dc2626;
-    font-size: 0.875rem;
+    font-size: 14px;
+    margin-top: 8px;
 }
 
 .admin-warning {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
+    color: var(--text-muted);
+    font-size: 14px;
 }
 
 /* Toast Notifications */
@@ -383,14 +381,24 @@
 }
 
 .editor-pane-editor {
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
+.editor-pane-editor #monaco-editor {
+    flex: 1;
+    min-height: 0;
+}
+
 .editor-pane-preview {
-    padding: 1.5rem;
+    padding: 40px;
     overflow-y: auto;
     border-left: 1px solid var(--border-color);
     background-color: var(--bg-primary);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-primary);
 }
 
 .editor-pane-preview.hidden {
@@ -402,18 +410,81 @@
     height: 100%;
 }
 
+/* Editor Format Toolbar */
+.editor-format-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.format-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.format-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border-color);
+    margin: 0 6px;
+}
+
+.format-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.format-btn:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.format-btn:active {
+    background-color: var(--border-color);
+}
+
+.format-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 /* Sidebar Admin Controls */
 .sidebar-admin-actions {
     display: flex;
-    gap: 0.5rem;
-    padding: 0.75rem 0;
-    margin-bottom: 0.5rem;
+    gap: 8px;
+    padding: 0 0 16px 0;
+    margin-bottom: 8px;
     border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-admin-actions .admin-btn {
     flex: 1;
     justify-content: center;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.sidebar-admin-actions .admin-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .sidebar-link-wrapper {

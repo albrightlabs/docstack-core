@@ -98,6 +98,58 @@ class UserApi
                 ]);
                 break;
 
+            case 'password':
+                // Allow current user to change their own password
+                if ($method !== 'POST') {
+                    $this->error('Method not allowed', 405);
+                    return;
+                }
+                Auth::requireAuth();
+
+                $data = $this->getJsonInput();
+
+                // Validate CSRF
+                if (!Auth::validateCsrf($data['csrf_token'] ?? null)) {
+                    $this->error('Invalid CSRF token', 403);
+                    return;
+                }
+
+                $currentPassword = $data['current_password'] ?? '';
+                $newPassword = $data['new_password'] ?? '';
+
+                if (empty($currentPassword) || empty($newPassword)) {
+                    $this->error('Current password and new password are required');
+                    return;
+                }
+
+                if (strlen($newPassword) < 8) {
+                    $this->error('New password must be at least 8 characters');
+                    return;
+                }
+
+                // Verify current password
+                $userId = Auth::getCurrentUserId();
+                $user = $this->userManager->getById($userId);
+                if ($user === null) {
+                    $this->error('User not found', 404);
+                    return;
+                }
+
+                // Check current password
+                $verifiedUser = $this->userManager->verifyPassword($user['email'], $currentPassword);
+                if ($verifiedUser === null) {
+                    $this->error('Current password is incorrect', 401);
+                    return;
+                }
+
+                // Update password
+                if ($this->userManager->changePassword($userId, $newPassword)) {
+                    $this->json(['success' => true, 'message' => 'Password changed successfully']);
+                } else {
+                    $this->error('Failed to change password', 500);
+                }
+                break;
+
             default:
                 $this->error('Unknown auth action', 404);
         }

@@ -149,7 +149,7 @@
             <nav class="toc-nav">
                 <?php foreach ($headings as $heading): ?>
                 <a href="#<?= htmlspecialchars($heading['id']) ?>" class="toc-link toc-level-<?= $heading['level'] ?>">
-                    <?= htmlspecialchars($heading['text']) ?>
+                    <?= htmlspecialchars(stripEmojis($heading['text'])) ?>
                 </a>
                 <?php endforeach; ?>
             </nav>
@@ -165,6 +165,7 @@
     <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <?php endif; ?>
     <script src="/assets/app.js"></script>
     <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
@@ -186,125 +187,17 @@
     <?php if (file_exists(__DIR__ . '/../public/assets/custom.js')): ?>
     <script src="/assets/custom.js"></script>
     <?php endif; ?>
+    <script src="/assets/favicon.js"></script>
     <script>
-    function setFaviconFromEmoji(emoji, letter, options) {
-        options = options || {};
-        var size = options.size || 32;
-        var letterFont = options.letterFont || 'bold 14px sans-serif';
-        var fillStyle = options.fillStyle || 'white';
-        var strokeStyle = options.strokeStyle || 'black';
-        var padding = options.padding || 2;
-
-        var canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        var ctx = canvas.getContext('2d');
-
-        // Draw emoji as base
-        ctx.font = (size - 4) + 'px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(emoji, size / 2, size / 2 + 2);
-
-        // Draw letter overlay if provided
-        if (letter) {
-            ctx.font = letterFont;
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'bottom';
-            ctx.lineWidth = 2;
-            var x = size - padding;
-            var y = size - padding;
-            ctx.strokeStyle = strokeStyle;
-            ctx.strokeText(letter, x, y);
-            ctx.fillStyle = fillStyle;
-            ctx.fillText(letter, x, y);
-        }
-
-        // Set favicon
-        var link = document.querySelector('link[rel="icon"]');
-        if (!link) {
-            link = document.createElement('link');
-            link.rel = 'icon';
-            document.head.appendChild(link);
-        }
-        link.type = 'image/png';
-        link.href = canvas.toDataURL('image/png');
-    }
-
-    function setFaviconFromImage(imageUrl, letter, options) {
-        options = options || {};
-        var size = options.size || 32;
-        var font = options.letterFont || 'bold 14px sans-serif';
-        var fillStyle = options.fillStyle || 'white';
-        var strokeStyle = options.strokeStyle || 'black';
-        var padding = options.padding || 2;
-
-        var img = new Image();
-        img.crossOrigin = 'anonymous';
-
-        img.onload = function() {
-            var canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            var ctx = canvas.getContext('2d');
-
-            // Draw the base favicon
-            ctx.drawImage(img, 0, 0, size, size);
-
-            // Draw letter overlay if provided
-            if (letter) {
-                ctx.font = font;
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'bottom';
-                ctx.lineWidth = 2;
-                var x = size - padding;
-                var y = size - padding;
-                ctx.strokeStyle = strokeStyle;
-                ctx.strokeText(letter, x, y);
-                ctx.fillStyle = fillStyle;
-                ctx.fillText(letter, x, y);
-            }
-
-            // Replace the favicon
-            var link = document.querySelector('link[rel="icon"]');
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            link.type = 'image/png';
-            link.href = canvas.toDataURL('image/png');
-        };
-
-        img.src = imageUrl;
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
-        var faviconUrl = <?= json_encode($branding['favicon_url']) ?>;
-        var faviconEmoji = <?= json_encode($branding['favicon_emoji']) ?>;
-        var siteEmoji = <?= json_encode($branding['site_emoji']) ?>;
-        var siteName = <?= json_encode($branding['site_name']) ?>;
-        var customLetter = <?= json_encode($branding['favicon_letter']) ?>;
-        var showLetter = <?= json_encode($branding['favicon_show_letter']) ?>;
-
-        // Determine the letter to show (if any)
-        var letter = null;
-        if (showLetter) {
-            letter = customLetter || siteName.charAt(0).toUpperCase();
-        }
-
-        var options = {
-            letterFont: 'bold 16px sans-serif',
-            padding: 1
-        };
-
-        // Determine favicon source: custom URL > custom emoji > site emoji
-        if (faviconUrl) {
-            setFaviconFromImage(faviconUrl, letter, options);
-        } else {
-            var emoji = faviconEmoji || siteEmoji || '📚';
-            setFaviconFromEmoji(emoji, letter, options);
-        }
+        FaviconGenerator.init({
+            faviconUrl: <?= json_encode($branding['favicon_url']) ?>,
+            faviconEmoji: <?= json_encode($branding['favicon_emoji']) ?>,
+            siteEmoji: <?= json_encode($branding['site_emoji']) ?>,
+            siteName: <?= json_encode($branding['site_name']) ?>,
+            faviconLetter: <?= json_encode($branding['favicon_letter']) ?>,
+            faviconShowLetter: <?= json_encode($branding['favicon_show_letter']) ?>
+        });
     });
     </script>
 </body>

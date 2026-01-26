@@ -10,6 +10,7 @@ const AdminEditor = {
     originalContent: null,
     hasUnsavedChanges: false,
     previewVisible: true,
+    apiBase: '/docs/api', // Base URL for API calls
 
     /**
      * Initialize admin functionality
@@ -21,6 +22,13 @@ const AdminEditor = {
             this.csrfToken = window.AdminState.csrfToken;
         }
 
+        // Show admin-only elements if authenticated
+        if (this.isAuthenticated) {
+            document.querySelectorAll('.admin-only').forEach(function(el) {
+                el.style.display = '';
+            });
+        }
+
         this.bindEvents();
     },
 
@@ -28,13 +36,6 @@ const AdminEditor = {
      * Bind event listeners
      */
     bindEvents: function() {
-        // Close modals on backdrop click
-        document.querySelectorAll('.admin-modal-backdrop').forEach(function(backdrop) {
-            backdrop.addEventListener('click', function() {
-                this.parentElement.style.display = 'none';
-            });
-        });
-
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             // Ctrl/Cmd + S to save
@@ -45,9 +46,9 @@ const AdminEditor = {
 
             // Escape to close modals or exit edit mode
             if (e.key === 'Escape') {
-                var modal = document.querySelector('.admin-modal[style*="display: flex"], .admin-modal:not([style*="display: none"])');
-                if (modal && modal.style.display !== 'none') {
-                    modal.style.display = 'none';
+                var modal = document.querySelector('.admin-modal.show');
+                if (modal) {
+                    modal.classList.remove('show');
                 }
             }
         });
@@ -74,7 +75,7 @@ const AdminEditor = {
         this.currentFile = path || window.location.pathname.replace(/^\/docs\/?/, '');
 
         // Fetch file content
-        fetch('/api/files/' + this.currentFile)
+        fetch(this.apiBase + '/files/' + this.currentFile)
             .then(function(response) { return response.json(); })
             .then(function(data) {
                 if (data.success) {
@@ -127,9 +128,71 @@ const AdminEditor = {
             '</div>' +
             '<div class="editor-panes">' +
                 '<div class="editor-pane editor-pane-editor">' +
+                    '<div class="editor-format-toolbar">' +
+                        '<div class="format-toolbar-group">' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'bold\')" title="Bold (Ctrl+B)">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'italic\')" title="Italic (Ctrl+I)">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'strikethrough\')" title="Strikethrough">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.3 4.9c-1.2-.9-2.8-1.4-4.6-1.4-3.1 0-5.3 1.6-5.3 4.2 0 1.3.5 2.3 1.5 3"/><path d="M4 12h16"/><path d="M17.6 14.5c0 2.8-2.3 4.5-5.5 4.5-2 0-3.8-.6-5-1.7"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                        '<div class="format-toolbar-divider"></div>' +
+                        '<div class="format-toolbar-group">' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'h1\')" title="Heading 1">H1</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'h2\')" title="Heading 2">H2</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'h3\')" title="Heading 3">H3</button>' +
+                        '</div>' +
+                        '<div class="format-toolbar-divider"></div>' +
+                        '<div class="format-toolbar-group">' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'ul\')" title="Bullet List">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'ol\')" title="Numbered List">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="3" y="7" font-size="6" fill="currentColor" stroke="none">1</text><text x="3" y="13" font-size="6" fill="currentColor" stroke="none">2</text><text x="3" y="19" font-size="6" fill="currentColor" stroke="none">3</text></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'task\')" title="Task List">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M5 8l1.5 1.5L9 7"/><line x1="12" y1="8" x2="21" y2="8"/><rect x="3" y="13" width="6" height="6" rx="1"/><line x1="12" y1="16" x2="21" y2="16"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                        '<div class="format-toolbar-divider"></div>' +
+                        '<div class="format-toolbar-group">' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'link\')" title="Insert Link">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'image\')" title="Insert Image URL">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.triggerImageUpload()" title="Upload Image">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'code\')" title="Inline Code">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'codeblock\')" title="Code Block">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 8 5 12 9 16"/><polyline points="15 8 19 12 15 16"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                        '<div class="format-toolbar-divider"></div>' +
+                        '<div class="format-toolbar-group">' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'quote\')" title="Blockquote">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'hr\')" title="Horizontal Rule">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/></svg>' +
+                            '</button>' +
+                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'table\')" title="Insert Table">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
                     '<div id="monaco-editor"></div>' +
+                    '<input type="file" id="image-upload-input" accept="image/*" style="display: none;" onchange="AdminEditor.handleImageUpload(this)">' +
                 '</div>' +
-                '<div class="editor-pane editor-pane-preview" id="editor-preview"></div>' +
+                '<div class="editor-pane editor-pane-preview doc-content" id="editor-preview"></div>' +
             '</div>' +
         '</div>';
 
@@ -172,39 +235,295 @@ const AdminEditor = {
                 self.updatePreview(currentContent);
             });
 
+            // Sync scroll between editor and preview
+            self.setupScrollSync();
+
             // Initial preview
             self.updatePreview(content);
+
+            // Start auto-save
+            self.startAutoSave();
         });
     },
 
+    scrollSyncEnabled: true,
+    isScrolling: false,
+
     /**
-     * Update preview pane
+     * Setup synchronized scrolling between editor and preview
+     */
+    setupScrollSync: function() {
+        var self = this;
+        var preview = document.getElementById('editor-preview');
+
+        if (!this.editor || !preview) return;
+
+        // Editor scroll -> Preview scroll
+        this.editor.onDidScrollChange(function(e) {
+            if (!self.scrollSyncEnabled || self.isScrolling) return;
+            if (!self.previewVisible) return;
+
+            self.isScrolling = true;
+
+            var scrollTop = e.scrollTop;
+            var scrollHeight = self.editor.getScrollHeight();
+            var clientHeight = self.editor.getLayoutInfo().height;
+            var maxScroll = scrollHeight - clientHeight;
+
+            if (maxScroll > 0) {
+                var scrollPercent = scrollTop / maxScroll;
+                var previewMaxScroll = preview.scrollHeight - preview.clientHeight;
+                preview.scrollTop = scrollPercent * previewMaxScroll;
+            }
+
+            setTimeout(function() { self.isScrolling = false; }, 50);
+        });
+
+        // Preview scroll -> Editor scroll
+        preview.addEventListener('scroll', function() {
+            if (!self.scrollSyncEnabled || self.isScrolling) return;
+            if (!self.editor) return;
+
+            self.isScrolling = true;
+
+            var scrollTop = preview.scrollTop;
+            var maxScroll = preview.scrollHeight - preview.clientHeight;
+
+            if (maxScroll > 0) {
+                var scrollPercent = scrollTop / maxScroll;
+                var editorScrollHeight = self.editor.getScrollHeight();
+                var editorClientHeight = self.editor.getLayoutInfo().height;
+                var editorMaxScroll = editorScrollHeight - editorClientHeight;
+                self.editor.setScrollTop(scrollPercent * editorMaxScroll);
+            }
+
+            setTimeout(function() { self.isScrolling = false; }, 50);
+        });
+    },
+
+    autoSaveInterval: null,
+
+    /**
+     * Insert markdown formatting at cursor
+     */
+    insertFormat: function(type) {
+        if (!this.editor) return;
+
+        var selection = this.editor.getSelection();
+        var selectedText = this.editor.getModel().getValueInRange(selection);
+        var insertText = '';
+        var cursorOffset = 0;
+
+        switch (type) {
+            case 'bold':
+                insertText = '**' + (selectedText || 'bold text') + '**';
+                if (!selectedText) cursorOffset = -2;
+                break;
+            case 'italic':
+                insertText = '_' + (selectedText || 'italic text') + '_';
+                if (!selectedText) cursorOffset = -1;
+                break;
+            case 'strikethrough':
+                insertText = '~~' + (selectedText || 'strikethrough') + '~~';
+                if (!selectedText) cursorOffset = -2;
+                break;
+            case 'h1':
+                insertText = '# ' + (selectedText || 'Heading 1');
+                break;
+            case 'h2':
+                insertText = '## ' + (selectedText || 'Heading 2');
+                break;
+            case 'h3':
+                insertText = '### ' + (selectedText || 'Heading 3');
+                break;
+            case 'ul':
+                insertText = '- ' + (selectedText || 'List item');
+                break;
+            case 'ol':
+                insertText = '1. ' + (selectedText || 'List item');
+                break;
+            case 'task':
+                insertText = '- [ ] ' + (selectedText || 'Task item');
+                break;
+            case 'link':
+                insertText = '[' + (selectedText || 'link text') + '](url)';
+                if (!selectedText) cursorOffset = -5;
+                break;
+            case 'image':
+                insertText = '![' + (selectedText || 'alt text') + '](image-url)';
+                if (!selectedText) cursorOffset = -11;
+                break;
+            case 'code':
+                insertText = '`' + (selectedText || 'code') + '`';
+                if (!selectedText) cursorOffset = -1;
+                break;
+            case 'codeblock':
+                insertText = '```\n' + (selectedText || 'code here') + '\n```';
+                if (!selectedText) cursorOffset = -4;
+                break;
+            case 'quote':
+                insertText = '> ' + (selectedText || 'Quote');
+                break;
+            case 'hr':
+                insertText = '\n---\n';
+                break;
+            case 'table':
+                insertText = '| Header 1 | Header 2 | Header 3 |\n| --- | --- | --- |\n| Cell 1 | Cell 2 | Cell 3 |';
+                break;
+        }
+
+        // Execute the edit
+        this.editor.executeEdits('', [{
+            range: selection,
+            text: insertText,
+            forceMoveMarkers: true
+        }]);
+
+        // Focus back on editor
+        this.editor.focus();
+    },
+
+    /**
+     * Trigger image upload file picker
+     */
+    triggerImageUpload: function() {
+        var input = document.getElementById('image-upload-input');
+        if (input) {
+            input.click();
+        }
+    },
+
+    /**
+     * Handle image file upload
+     */
+    handleImageUpload: function(input) {
+        var self = this;
+        var file = input.files[0];
+
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            this.showToast('Please select an image file', 'error');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showToast('Image must be less than 5MB', 'error');
+            return;
+        }
+
+        // Show uploading indicator
+        this.showToast('Uploading image...', 'success');
+
+        // Create FormData and upload
+        var formData = new FormData();
+        formData.append('image', file);
+        formData.append('csrf_token', this.csrfToken);
+
+        fetch(this.apiBase + '/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                // Insert markdown image at cursor
+                var imageMarkdown = '![' + (data.data.filename || 'image') + '](' + data.data.url + ')';
+                self.editor.executeEdits('', [{
+                    range: self.editor.getSelection(),
+                    text: imageMarkdown,
+                    forceMoveMarkers: true
+                }]);
+                self.editor.focus();
+                self.showToast('Image uploaded successfully', 'success');
+            } else {
+                self.showToast(data.error || 'Failed to upload image', 'error');
+            }
+        })
+        .catch(function(error) {
+            self.showToast('Failed to upload image', 'error');
+        });
+
+        // Reset input so same file can be uploaded again
+        input.value = '';
+    },
+
+    /**
+     * Start auto-save
+     */
+    startAutoSave: function() {
+        var self = this;
+
+        // Auto-save every 30 seconds if there are unsaved changes
+        this.autoSaveInterval = setInterval(function() {
+            if (self.hasUnsavedChanges && self.editor && self.currentFile) {
+                self.saveFile(true); // silent save
+            }
+        }, 30000);
+    },
+
+    /**
+     * Stop auto-save
+     */
+    stopAutoSave: function() {
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+            this.autoSaveInterval = null;
+        }
+    },
+
+    previewTimeout: null,
+
+    /**
+     * Update preview pane (debounced server-side rendering)
      */
     updatePreview: function(markdown) {
         var preview = document.getElementById('editor-preview');
         if (!preview || preview.classList.contains('hidden')) return;
 
-        // Use marked.js if available, otherwise simple conversion
-        if (typeof marked !== 'undefined') {
-            preview.innerHTML = marked.parse(markdown);
-        } else {
-            // Simple markdown preview fallback
-            var html = markdown
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-                .replace(/\*(.*)\*/gim, '<em>$1</em>')
-                .replace(/\n/gim, '<br>');
-            preview.innerHTML = html;
+        var self = this;
+
+        // Debounce to avoid too many requests
+        if (this.previewTimeout) {
+            clearTimeout(this.previewTimeout);
         }
 
-        // Highlight code blocks
-        preview.querySelectorAll('pre code').forEach(function(block) {
-            if (typeof hljs !== 'undefined') {
-                hljs.highlightElement(block);
-            }
-        });
+        this.previewTimeout = setTimeout(function() {
+            fetch(self.apiBase + '/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    markdown: markdown
+                })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success && data.data && data.data.html !== undefined) {
+                    preview.innerHTML = data.data.html;
+
+                    // Apply syntax highlighting to code blocks
+                    if (typeof hljs !== 'undefined') {
+                        preview.querySelectorAll('pre code').forEach(function(block) {
+                            hljs.highlightElement(block);
+                        });
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.error('Preview error:', error);
+            });
+        }, 300);
+    },
+
+    /**
+     * Escape HTML entities
+     */
+    escapeHtml: function(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     },
 
     /**
@@ -223,13 +542,14 @@ const AdminEditor = {
 
     /**
      * Save current file
+     * @param {boolean} silent - If true, don't show toast notification (for auto-save)
      */
-    saveFile: function() {
+    saveFile: function(silent) {
         if (!this.editor || !this.currentFile) return;
 
         var content = this.editor.getValue();
 
-        fetch('/api/files/' + this.currentFile, {
+        fetch(this.apiBase + '/files/' + this.currentFile, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -243,7 +563,9 @@ const AdminEditor = {
                 AdminEditor.originalContent = content;
                 AdminEditor.hasUnsavedChanges = false;
                 document.getElementById('editor-unsaved').style.display = 'none';
-                AdminEditor.showToast('File saved successfully', 'success');
+                if (!silent) {
+                    AdminEditor.showToast('File saved successfully', 'success');
+                }
             } else {
                 AdminEditor.showToast(data.error || 'Failed to save file', 'error');
             }
@@ -263,6 +585,9 @@ const AdminEditor = {
             }
         }
 
+        // Stop auto-save
+        this.stopAutoSave();
+
         this.editor = null;
         this.currentFile = null;
         this.originalContent = null;
@@ -280,7 +605,7 @@ const AdminEditor = {
         document.getElementById('create-name').value = '';
         document.getElementById('create-is-directory').checked = false;
         document.getElementById('admin-create-error').style.display = 'none';
-        document.getElementById('admin-create-modal').style.display = 'flex';
+        document.getElementById('admin-create-modal').classList.add('show');
         document.getElementById('create-name').focus();
     },
 
@@ -288,7 +613,7 @@ const AdminEditor = {
      * Close create modal
      */
     closeCreateModal: function() {
-        document.getElementById('admin-create-modal').style.display = 'none';
+        document.getElementById('admin-create-modal').classList.remove('show');
     },
 
     /**
@@ -304,7 +629,7 @@ const AdminEditor = {
 
         var path = parentPath ? parentPath + '/' + name : name;
 
-        fetch('/api/files/' + path, {
+        fetch(this.apiBase + '/files/' + path, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -337,14 +662,14 @@ const AdminEditor = {
         document.getElementById('delete-item-path').value = path;
         document.getElementById('delete-item-name').textContent = name;
         document.getElementById('admin-delete-error').style.display = 'none';
-        document.getElementById('admin-delete-modal').style.display = 'flex';
+        document.getElementById('admin-delete-modal').classList.add('show');
     },
 
     /**
      * Close delete modal
      */
     closeDeleteModal: function() {
-        document.getElementById('admin-delete-modal').style.display = 'none';
+        document.getElementById('admin-delete-modal').classList.remove('show');
     },
 
     /**
@@ -354,7 +679,7 @@ const AdminEditor = {
         var path = document.getElementById('delete-item-path').value;
         var errorEl = document.getElementById('admin-delete-error');
 
-        fetch('/api/files/' + path, {
+        fetch(this.apiBase + '/files/' + path, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -386,7 +711,7 @@ const AdminEditor = {
         document.getElementById('rename-old-path').value = path;
         document.getElementById('rename-new-name').value = currentName;
         document.getElementById('admin-rename-error').style.display = 'none';
-        document.getElementById('admin-rename-modal').style.display = 'flex';
+        document.getElementById('admin-rename-modal').classList.add('show');
         document.getElementById('rename-new-name').focus();
         document.getElementById('rename-new-name').select();
     },
@@ -395,7 +720,7 @@ const AdminEditor = {
      * Close rename modal
      */
     closeRenameModal: function() {
-        document.getElementById('admin-rename-modal').style.display = 'none';
+        document.getElementById('admin-rename-modal').classList.remove('show');
     },
 
     /**
@@ -408,7 +733,7 @@ const AdminEditor = {
         var newName = document.getElementById('rename-new-name').value;
         var errorEl = document.getElementById('admin-rename-error');
 
-        fetch('/api/files/' + oldPath + '/move', {
+        fetch(this.apiBase + '/files/' + oldPath + '/move', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

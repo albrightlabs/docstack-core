@@ -40,6 +40,14 @@ class Api
                     $this->handleFiles($method, array_slice($parts, 1));
                     break;
 
+                case 'preview':
+                    $this->handlePreview($method);
+                    break;
+
+                case 'upload':
+                    $this->handleUpload($method);
+                    break;
+
                 default:
                     $this->error('Unknown endpoint', 404);
             }
@@ -65,6 +73,7 @@ class Api
 
         switch ($method) {
             case 'GET':
+                $this->requireAuth(); // Require authentication for file access
                 if (empty($filePath)) {
                     $this->getFileTree();
                 } else {
@@ -74,6 +83,7 @@ class Api
 
             case 'POST':
                 $this->requireAuth();
+                $this->requireWriteAuth(); // Additional write permission check
                 if ($isMove) {
                     $this->moveFile($filePath);
                 } else {
@@ -83,17 +93,130 @@ class Api
 
             case 'PUT':
                 $this->requireAuth();
+                $this->requireWriteAuth();
                 $this->updateFile($filePath);
                 break;
 
             case 'DELETE':
                 $this->requireAuth();
+                $this->requireWriteAuth();
                 $this->deleteFile($filePath);
                 break;
 
             default:
                 $this->error('Method not allowed', 405);
         }
+    }
+
+    /**
+     * Handle markdown preview
+     */
+    private function handlePreview(string $method): void
+    {
+        if ($method !== 'POST') {
+            $this->error('Method not allowed', 405);
+            return;
+        }
+
+        $this->requireAuth();
+
+        $data = $this->getJsonInput();
+        $markdown = $data['markdown'] ?? '';
+
+        if (empty($markdown)) {
+            $this->json(['success' => true, 'data' => ['html' => '']]);
+            return;
+        }
+
+        $parser = new Markdown();
+        $html = $parser->parse($markdown);
+
+        $this->json(['success' => true, 'data' => ['html' => $html]]);
+    }
+
+    /**
+     * Handle image upload
+     */
+    private function handleUpload(string $method): void
+    {
+        if ($method !== 'POST') {
+            $this->error('Method not allowed', 405);
+            return;
+        }
+
+        $this->requireAuth();
+        $this->requireWriteAuth();
+
+        // Validate CSRF token from POST data
+        $csrfToken = $_POST['csrf_token'] ?? null;
+        $this->validateCsrf($csrfToken);
+
+        // Check if file was uploaded
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            $this->error('No image file uploaded', 400);
+            return;
+        }
+
+        $file = $_FILES['image'];
+
+        // Validate file type
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($mimeType, $allowedTypes)) {
+            $this->error('Invalid image type. Allowed: JPEG, PNG, GIF, WebP, SVG', 400);
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if ($file['size'] > 5 * 1024 * 1024) {
+            $this->error('Image must be less than 5MB', 400);
+            return;
+        }
+
+        // Create uploads directory if it doesn't exist
+        $uploadsDir = dirname(__DIR__) . '/public/uploads';
+        if (!is_dir($uploadsDir)) {
+            mkdir($uploadsDir, 0755, true);
+        }
+
+        // Generate unique filename
+        $extension = $this->getImageExtension($mimeType);
+        $filename = date('Y-m-d') . '-' . bin2hex(random_bytes(8)) . '.' . $extension;
+        $filepath = $uploadsDir . '/' . $filename;
+
+        // Move uploaded file
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            $this->error('Failed to save image', 500);
+            return;
+        }
+
+        // Return success with URL
+        $this->json([
+            'success' => true,
+            'data' => [
+                'url' => '/uploads/' . $filename,
+                'filename' => pathinfo($file['name'], PATHINFO_FILENAME)
+            ]
+        ]);
+    }
+
+    /**
+     * Get file extension from MIME type
+     */
+    private function getImageExtension(string $mimeType): string
+    {
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'image/svg+xml' => 'svg',
+        ];
+
+        return $extensions[$mimeType] ?? 'jpg';
     }
 
     /**
@@ -432,7 +555,7 @@ class Api
     }
 
     /**
-     * Require admin authentication
+     * Require authentication
      */
     private function requireAuth(): void
     {
@@ -440,10 +563,15 @@ class Api
             $this->error('Authentication required', 401);
             exit;
         }
+    }
 
-        // Check write permission for file operations
+    /**
+     * Require write permission (admin or editor)
+     */
+    private function requireWriteAuth(): void
+    {
         if (!Auth::canWrite()) {
-            $this->error('Read-only access. Modifications not allowed.', 403);
+            $this->error('Write access required. You have read-only access.', 403);
             exit;
         }
     }

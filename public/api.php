@@ -26,14 +26,41 @@ Auth::init();
 $method = $_SERVER['REQUEST_METHOD'];
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
+// Handle CORS - restrict to same origin or configured origins
+$allowedOrigins = Config::get('cors_allowed_origins', []);
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+// Determine if origin is allowed
+$isAllowedOrigin = false;
+if (!empty($origin)) {
+    // Check if origin matches the server's own host
+    $serverHost = ($_SERVER['HTTPS'] ?? 'off') !== 'off' ? 'https://' : 'http://';
+    $serverHost .= $_SERVER['HTTP_HOST'] ?? '';
+
+    if ($origin === $serverHost) {
+        $isAllowedOrigin = true;
+    } elseif (!empty($allowedOrigins) && in_array($origin, $allowedOrigins, true)) {
+        $isAllowedOrigin = true;
+    }
+}
+
 // Handle CORS preflight requests
 if ($method === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: *');
+    if ($isAllowedOrigin) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Allow-Credentials: true');
+    }
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
     header('Access-Control-Max-Age: 86400');
     http_response_code(204);
     exit;
+}
+
+// Set CORS headers for actual requests
+if ($isAllowedOrigin) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Access-Control-Allow-Credentials: true');
 }
 
 // Remove /docs prefix if present, then handle /api prefix

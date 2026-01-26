@@ -358,6 +358,59 @@ $csrfToken = Auth::getCsrfToken();
                 justify-content: flex-end;
             }
         }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color, #e5e7eb);
+            border-top-color: var(--primary-color, #3b82f6);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Inline error message */
+        .inline-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .inline-error {
+                background: #450a0a;
+                border-color: #7f1d1d;
+                color: #fca5a5;
+            }
+        }
+
+        /* Error state for empty state */
+        .empty-state.error-state {
+            color: #dc2626;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .empty-state.error-state {
+                color: #fca5a5;
+            }
+        }
+
+        /* Disabled button state */
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -510,6 +563,8 @@ $csrfToken = Auth::getCsrfToken();
 
         // Load users
         function loadUsers() {
+            usersList.innerHTML = '<div class="empty-state"><div class="loading-spinner"></div> Loading users...</div>';
+
             fetch('/docs/api/users', {
                 headers: { 'X-CSRF-Token': window.CSRF_TOKEN }
             })
@@ -519,11 +574,11 @@ $csrfToken = Auth::getCsrfToken();
                     users = data.data;
                     renderUsers();
                 } else {
-                    usersList.innerHTML = '<div class="empty-state">Failed to load users</div>';
+                    usersList.innerHTML = '<div class="empty-state error-state">Failed to load users</div>';
                 }
             })
             .catch(function(error) {
-                usersList.innerHTML = '<div class="empty-state">Failed to load users: ' + error.message + '</div>';
+                usersList.innerHTML = '<div class="empty-state error-state">Failed to load users: ' + escapeHtml(error.message) + '</div>';
             });
         }
 
@@ -601,6 +656,11 @@ $csrfToken = Auth::getCsrfToken();
                 csrf_token: window.CSRF_TOKEN
             };
 
+            var submitBtn = userForm.querySelector('button[type="submit"]');
+            var originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+
             fetch('/docs/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -608,18 +668,30 @@ $csrfToken = Auth::getCsrfToken();
             })
             .then(function(r) { return r.json(); })
             .then(function(result) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
                 if (result.success) {
                     userModal.classList.remove('show');
                     loadUsers();
                 } else {
-                    alert(result.error || 'Failed to create user');
+                    showError(userForm, result.error || 'Failed to create user');
                 }
+            })
+            .catch(function(error) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                showError(userForm, 'Network error: ' + error.message);
             });
         });
 
         // Confirm delete
-        document.getElementById('confirm-delete-user').addEventListener('click', function() {
+        var deleteBtn = document.getElementById('confirm-delete-user');
+        deleteBtn.addEventListener('click', function() {
             if (!deleteUserId) return;
+
+            var originalText = deleteBtn.textContent;
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Deleting...';
 
             fetch('/docs/api/users/' + deleteUserId, {
                 method: 'DELETE',
@@ -628,13 +700,20 @@ $csrfToken = Auth::getCsrfToken();
             })
             .then(function(r) { return r.json(); })
             .then(function(result) {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = originalText;
                 if (result.success) {
                     deleteModal.classList.remove('show');
                     deleteUserId = null;
                     loadUsers();
                 } else {
-                    alert(result.error || 'Failed to delete user');
+                    showError(deleteModal.querySelector('.modal-content'), result.error || 'Failed to delete user');
                 }
+            })
+            .catch(function(error) {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = originalText;
+                showError(deleteModal.querySelector('.modal-content'), 'Network error: ' + error.message);
             });
         });
 
@@ -658,6 +737,34 @@ $csrfToken = Auth::getCsrfToken();
             var div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        // Show error message inline
+        function showError(container, message) {
+            // Remove any existing error
+            var existingError = container.querySelector('.inline-error');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            var errorDiv = document.createElement('div');
+            errorDiv.className = 'inline-error';
+            errorDiv.textContent = message;
+
+            // Insert at top of container or before buttons
+            var actions = container.querySelector('.modal-actions, .form-actions');
+            if (actions) {
+                actions.parentNode.insertBefore(errorDiv, actions);
+            } else {
+                container.insertBefore(errorDiv, container.firstChild);
+            }
+
+            // Auto-remove after 5 seconds
+            setTimeout(function() {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
         }
 
         // Initial load
@@ -687,118 +794,17 @@ $csrfToken = Auth::getCsrfToken();
         }
     });
 
-    // Favicon generation
-    function setFaviconFromEmoji(emoji, letter, options) {
-        options = options || {};
-        var size = options.size || 32;
-        var letterFont = options.letterFont || 'bold 14px sans-serif';
-        var fillStyle = options.fillStyle || 'white';
-        var strokeStyle = options.strokeStyle || 'black';
-        var padding = options.padding || 2;
-
-        var canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        var ctx = canvas.getContext('2d');
-
-        ctx.font = (size - 4) + 'px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(emoji, size / 2, size / 2 + 2);
-
-        if (letter) {
-            ctx.font = letterFont;
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'bottom';
-            ctx.lineWidth = 2;
-            var x = size - padding;
-            var y = size - padding;
-            ctx.strokeStyle = strokeStyle;
-            ctx.strokeText(letter, x, y);
-            ctx.fillStyle = fillStyle;
-            ctx.fillText(letter, x, y);
-        }
-
-        var link = document.querySelector('link[rel="icon"]');
-        if (!link) {
-            link = document.createElement('link');
-            link.rel = 'icon';
-            document.head.appendChild(link);
-        }
-        link.type = 'image/png';
-        link.href = canvas.toDataURL('image/png');
-    }
-
-    function setFaviconFromImage(imageUrl, letter, options) {
-        options = options || {};
-        var size = options.size || 32;
-        var font = options.letterFont || 'bold 14px sans-serif';
-        var fillStyle = options.fillStyle || 'white';
-        var strokeStyle = options.strokeStyle || 'black';
-        var padding = options.padding || 2;
-
-        var img = new Image();
-        img.crossOrigin = 'anonymous';
-
-        img.onload = function() {
-            var canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            var ctx = canvas.getContext('2d');
-
-            ctx.drawImage(img, 0, 0, size, size);
-
-            if (letter) {
-                ctx.font = font;
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'bottom';
-                ctx.lineWidth = 2;
-                var x = size - padding;
-                var y = size - padding;
-                ctx.strokeStyle = strokeStyle;
-                ctx.strokeText(letter, x, y);
-                ctx.fillStyle = fillStyle;
-                ctx.fillText(letter, x, y);
-            }
-
-            var link = document.querySelector('link[rel="icon"]');
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            link.type = 'image/png';
-            link.href = canvas.toDataURL('image/png');
-        };
-
-        img.src = imageUrl;
-    }
-
-    (function() {
-        var faviconUrl = <?= json_encode($branding['favicon_url']) ?>;
-        var faviconEmoji = <?= json_encode($branding['favicon_emoji']) ?>;
-        var siteEmoji = <?= json_encode($branding['site_emoji']) ?>;
-        var siteName = <?= json_encode($branding['site_name']) ?>;
-        var customLetter = <?= json_encode($branding['favicon_letter']) ?>;
-        var showLetter = <?= json_encode($branding['favicon_show_letter']) ?>;
-
-        var letter = null;
-        if (showLetter) {
-            letter = customLetter || siteName.charAt(0).toUpperCase();
-        }
-
-        var options = {
-            letterFont: 'bold 16px sans-serif',
-            padding: 1
-        };
-
-        if (faviconUrl) {
-            setFaviconFromImage(faviconUrl, letter, options);
-        } else {
-            var emoji = faviconEmoji || siteEmoji || '📚';
-            setFaviconFromEmoji(emoji, letter, options);
-        }
-    })();
+    </script>
+    <script src="/assets/favicon.js"></script>
+    <script>
+    FaviconGenerator.init({
+        faviconUrl: <?= json_encode($branding['favicon_url']) ?>,
+        faviconEmoji: <?= json_encode($branding['favicon_emoji']) ?>,
+        siteEmoji: <?= json_encode($branding['site_emoji']) ?>,
+        siteName: <?= json_encode($branding['site_name']) ?>,
+        faviconLetter: <?= json_encode($branding['favicon_letter']) ?>,
+        faviconShowLetter: <?= json_encode($branding['favicon_show_letter']) ?>
+    });
     </script>
 </body>
 </html>

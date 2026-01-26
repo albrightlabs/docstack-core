@@ -181,12 +181,14 @@ docstack-core/
 │       ├── custom.css    # Your custom styles (gitignored)
 │       └── custom.js     # Your custom scripts (gitignored)
 ├── src/                  # PHP application code
-│   ├── AdminAuth.php     # Admin authentication
-│   ├── Api.php           # Admin API handlers
+│   ├── Api.php           # Content API handlers
+│   ├── Auth.php          # User authentication
 │   ├── Config.php        # Configuration from .env
 │   ├── Content.php       # Content/tree loading
 │   ├── FileOperations.php # File management
 │   ├── Markdown.php      # Markdown processing
+│   ├── UserApi.php       # User management API
+│   ├── UserManager.php   # User CRUD operations
 │   └── helpers.php       # Utilities
 ├── templates/            # PHP templates
 │   ├── layout.php        # Main layout
