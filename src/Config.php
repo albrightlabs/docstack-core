@@ -147,6 +147,7 @@ class Config
             'FEATURE_DARK_MODE' => 'feature_dark_mode',
             'FEATURE_SEARCH' => 'feature_search',
             'FEATURE_TOC' => 'feature_toc',
+            'FEATURE_REQUIRE_AUTH' => 'feature_require_auth',
 
             // Content
             'CONTENT_DIR' => 'content_dir',

@@ -55,10 +55,24 @@ ADMIN_PASSWORD="admin-password"
 ### Features
 
 ```env
-FEATURE_EDITING=true      # Admin editing
-FEATURE_DARK_MODE=true    # Dark mode support
-FEATURE_TOC=true          # Table of contents
+FEATURE_EDITING=true       # Admin editing
+FEATURE_DARK_MODE=true     # Dark mode support
+FEATURE_TOC=true           # Table of contents
+FEATURE_REQUIRE_AUTH=false # Require login to view content
 ```
+
+### Require Authentication
+
+To make your documentation private (require login to view any content):
+
+```env
+FEATURE_REQUIRE_AUTH=true
+```
+
+When enabled:
+- All visitors are redirected to the login page
+- Users must have at least read-only access to view content
+- Create users via the admin panel with appropriate roles
 
 ## Custom Styling
 

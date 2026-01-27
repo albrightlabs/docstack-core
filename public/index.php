@@ -190,6 +190,12 @@ if (preg_match('#^users/([a-f0-9-]+)/edit$#', $path, $matches)) {
     exit;
 }
 
+// Require authentication for all content if enabled
+if (Config::feature('require_auth') && !Auth::check()) {
+    header('Location: /docs/login');
+    exit;
+}
+
 // Get sections for tabs
 $sections = $content->getSections();
 
