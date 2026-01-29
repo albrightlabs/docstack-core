@@ -741,14 +741,24 @@ a:hover {
 
 .doc-content blockquote {
     margin: 0 0 16px 0;
-    padding: 12px 20px;
-    border-left: 4px solid var(--accent-color);
-    background: var(--bg-secondary);
-    color: var(--text-tertiary);
+    padding: 16px 20px 16px 20px;
+    background: rgba(139, 128, 96, 0.15);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .doc-content blockquote,
+.dark-mode .doc-content blockquote {
+    background: rgba(139, 128, 96, 0.25);
 }
 
 .doc-content blockquote p:last-child {
     margin-bottom: 0;
+}
+
+.doc-content blockquote p:first-child {
+    margin-top: 0;
 }
 
 /* Code blocks */
