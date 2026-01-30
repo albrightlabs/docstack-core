@@ -160,7 +160,8 @@ class Markdown
             $level = (int) substr($match[1], 1);
             $id = $match[2];
             // Extract text content, removing the anchor link
-            $text = strip_tags(preg_replace('/<a[^>]*class=["\']heading-anchor["\'][^>]*>.*?<\/a>/i', '', $match[0]));
+            // Decode HTML entities so they display correctly in the TOC
+            $text = html_entity_decode(strip_tags(preg_replace('/<a[^>]*class=["\']heading-anchor["\'][^>]*>.*?<\/a>/i', '', $match[0])), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
             $headings[] = [
                 'level' => $level,

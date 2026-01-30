@@ -12,11 +12,22 @@ function stripPrefix(string $name): string
 
 /**
  * Convert kebab-case or snake_case to Title Case
+ * Preserves capitalization for configured acronyms (DM, API, etc.)
  */
 function toTitleCase(string $name): string
 {
     $name = str_replace(['_', '-'], ' ', $name);
-    return ucwords($name);
+    $name = ucwords($name);
+
+    // Get words that should preserve their capitalization
+    $preserveWords = \App\Config::get('preserve_case_words', []);
+
+    // Replace case-insensitive matches with the proper capitalization
+    foreach ($preserveWords as $word) {
+        $name = preg_replace('/\b' . preg_quote($word, '/') . '\b/i', $word, $name);
+    }
+
+    return $name;
 }
 
 /**

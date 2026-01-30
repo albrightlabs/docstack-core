@@ -610,8 +610,12 @@ a:hover {
 }
 
 .sidebar-section-link {
-    color: inherit;
+    color: var(--text-tertiary);
     text-decoration: none;
+    font-size: 14px;
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 .sidebar-section-link:hover {
