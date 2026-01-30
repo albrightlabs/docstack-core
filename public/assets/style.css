@@ -728,6 +728,19 @@ a:hover {
     margin: 24px 0 8px 0;
 }
 
+/* Remove top margin when headings are adjacent */
+.doc-content h1 + h2,
+.doc-content h1 + h3,
+.doc-content h1 + h4,
+.doc-content h2 + h2,
+.doc-content h2 + h3,
+.doc-content h2 + h4,
+.doc-content h3 + h3,
+.doc-content h3 + h4,
+.doc-content h4 + h4 {
+    margin-top: 0;
+}
+
 .doc-content p {
     margin: 0 0 16px 0;
 }
