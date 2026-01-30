@@ -6,8 +6,17 @@
     <title>Page Not Found - <?= htmlspecialchars($branding['site_name']) ?></title>
     <link rel="icon" type="image/png" href="<?= !empty($branding['favicon_url']) ? htmlspecialchars($branding['favicon_url']) : '/assets/favicon.png' ?>">
     <link rel="stylesheet" href="/assets/style.css">
+    <link rel="stylesheet" href="/assets/admin.css">
     <?php if (file_exists(__DIR__ . '/../public/assets/custom.css')): ?>
     <link rel="stylesheet" href="/assets/custom.css">
+    <?php endif; ?>
+    <?php if ($branding['color_primary'] !== '#3b82f6'): ?>
+    <style>
+        :root {
+            --primary-color: <?= htmlspecialchars($branding['color_primary']) ?>;
+            --primary-hover: <?= htmlspecialchars($branding['color_primary_hover']) ?>;
+        }
+    </style>
     <?php endif; ?>
 </head>
 <body>
@@ -37,14 +46,55 @@
                     </a>
                     <?php endforeach; ?>
                 </nav>
-                <?php if (!empty($branding['external_link_url'])): ?>
-                <a href="<?= htmlspecialchars($branding['external_link_url']) ?>" class="header-external-link" target="_blank" rel="noopener noreferrer">
-                    <?php if (!empty($branding['external_link_logo'])): ?>
-                    <img src="<?= htmlspecialchars($branding['external_link_logo']) ?>" alt="<?= htmlspecialchars($branding['external_link_name']) ?>" width="16" height="16">
+                <div class="header-right">
+                    <?php if (!empty($branding['external_link_url'])): ?>
+                    <a href="<?= htmlspecialchars($branding['external_link_url']) ?>" class="header-external-link" target="_blank" rel="noopener noreferrer">
+                        <?php if (!empty($branding['external_link_logo'])): ?>
+                        <img src="<?= htmlspecialchars($branding['external_link_logo']) ?>" alt="<?= htmlspecialchars($branding['external_link_name']) ?>" width="16" height="16">
+                        <?php endif; ?>
+                        <?= htmlspecialchars($branding['external_link_name']) ?> &rarr;
+                    </a>
                     <?php endif; ?>
-                    <?= htmlspecialchars($branding['external_link_name']) ?> &rarr;
-                </a>
-                <?php endif; ?>
+                    <?php if (\App\Auth::check()): ?>
+                    <div class="user-menu" id="user-menu">
+                        <button type="button" class="user-menu-toggle" id="user-menu-toggle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </button>
+                        <div class="user-menu-dropdown" id="user-menu-dropdown">
+                            <div class="user-menu-info">
+                                <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
+                            </div>
+                            <?php if (\App\Auth::isAdmin()): ?>
+                            <a href="/docs/users" class="user-menu-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                Manage Users
+                            </a>
+                            <?php endif; ?>
+                            <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                Sign Out
+                            </a>
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <a href="/docs/login" class="admin-btn admin-btn-ghost admin-btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                        Sign In
+                    </a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </header>
