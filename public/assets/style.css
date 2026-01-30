@@ -708,8 +708,6 @@ a:hover {
     font-size: 32px;
     font-weight: 700;
     margin: 0 0 24px 0;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .doc-content h2 {
