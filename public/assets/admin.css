@@ -494,20 +494,37 @@
 .sidebar-link-wrapper .sidebar-link {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    overflow: hidden;
 }
 
 .sidebar-section-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Title text should truncate, not wrap */
+.sidebar-link .sidebar-link-text,
+.sidebar-section-header .sidebar-section-title {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-item-actions {
     display: none;
     align-items: center;
     gap: 0.25rem;
-    margin-left: auto;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-left: 24px;
+    padding-right: 2px;
+    background: linear-gradient(to right, transparent, var(--bg-secondary) 16px);
 }
 
 .sidebar-link:hover .sidebar-item-actions,
@@ -516,8 +533,8 @@
 }
 
 .sidebar-action-btn {
-    padding: 0.125rem;
-    background: none;
+    padding: 0.25rem;
+    background: var(--bg-secondary);
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
