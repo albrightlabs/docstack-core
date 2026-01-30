@@ -9,6 +9,7 @@
         searchModal: null,
         searchInput: null,
         searchResults: null,
+        searchTrigger: null,
         selectedIndex: -1,
         results: [],
         debounceTimer: null,
@@ -50,24 +51,23 @@
             var headerRight = document.querySelector('.header-right');
             if (headerRight) {
                 var searchBtn = document.createElement('button');
-                searchBtn.className = 'search-trigger';
+                searchBtn.className = 'admin-btn admin-btn-ghost admin-btn-sm';
+                searchBtn.title = 'Search (/)';
                 searchBtn.innerHTML =
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
                         '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />' +
-                    '</svg>' +
-                    '<span class="search-trigger-text">Search</span>' +
-                    '<kbd class="search-trigger-shortcut">/</kbd>';
+                    '</svg>';
                 headerRight.insertBefore(searchBtn, headerRight.firstChild);
+                this.searchTrigger = searchBtn;
             }
         },
 
         bindEvents: function() {
             var self = this;
 
-            // Search trigger button
-            var searchTrigger = document.querySelector('.search-trigger');
-            if (searchTrigger) {
-                searchTrigger.addEventListener('click', function() {
+            // Search trigger button (stored reference from createSearchUI)
+            if (this.searchTrigger) {
+                this.searchTrigger.addEventListener('click', function() {
                     self.open();
                 });
             }
