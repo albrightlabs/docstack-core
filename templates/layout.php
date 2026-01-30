@@ -168,6 +168,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <?php endif; ?>
     <script src="/assets/app.js"></script>
+    <script src="/assets/search.js"></script>
     <?php if (\App\Config::feature('editing') && \App\Auth::canEditContent()): ?>
     <script src="/assets/admin.js"></script>
     <script>

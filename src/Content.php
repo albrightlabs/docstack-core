@@ -558,4 +558,142 @@ class Content
         }
         return false;
     }
+
+    /**
+     * Search files by query string
+     * Searches in titles and content
+     */
+    public function searchFiles(string $query, int $limit = 20): array
+    {
+        $results = [];
+        $query = trim($query);
+
+        if (empty($query) || strlen($query) < 2) {
+            return [];
+        }
+
+        $queryLower = mb_strtolower($query);
+        $this->searchRecursive($this->contentDir, '', $queryLower, $results);
+
+        // Sort by relevance (title matches first, then by match position)
+        usort($results, function ($a, $b) {
+            // Title matches come first
+            if ($a['titleMatch'] !== $b['titleMatch']) {
+                return $b['titleMatch'] ? 1 : -1;
+            }
+            // Then sort by relevance score
+            return $b['relevance'] <=> $a['relevance'];
+        });
+
+        return array_slice($results, 0, $limit);
+    }
+
+    /**
+     * Recursively search through files
+     */
+    private function searchRecursive(string $dir, string $basePath, string $query, array &$results): void
+    {
+        $entries = scandir($dir);
+        if ($entries === false) {
+            return;
+        }
+
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $fullPath = $dir . '/' . $entry;
+            $slug = getSlug($entry);
+            $relativePath = $basePath ? $basePath . '/' . $slug : $slug;
+
+            if (is_dir($fullPath)) {
+                // Check for index.md in directory
+                $indexPath = $fullPath . '/index.md';
+                if (file_exists($indexPath)) {
+                    $this->checkFileForSearch($indexPath, $relativePath, $query, $results, true);
+                }
+                // Recurse into subdirectory
+                $this->searchRecursive($fullPath, $relativePath, $query, $results);
+            } elseif (pathinfo($entry, PATHINFO_EXTENSION) === 'md') {
+                // Skip index.md (handled above with directory)
+                if (pathinfo($entry, PATHINFO_FILENAME) === 'index') {
+                    continue;
+                }
+                $this->checkFileForSearch($fullPath, $relativePath, $query, $results, false);
+            }
+        }
+    }
+
+    /**
+     * Check a single file for search matches
+     */
+    private function checkFileForSearch(string $filePath, string $slug, string $query, array &$results, bool $isIndex): void
+    {
+        $content = file_get_contents($filePath);
+        if ($content === false) {
+            return;
+        }
+
+        $title = $this->extractTitle($content) ?? getDisplayName(basename($filePath));
+        $titleLower = mb_strtolower($title);
+        $contentLower = mb_strtolower($content);
+
+        $titleMatch = str_contains($titleLower, $query);
+        $contentMatch = str_contains($contentLower, $query);
+
+        if (!$titleMatch && !$contentMatch) {
+            return;
+        }
+
+        // Calculate relevance score
+        $relevance = 0;
+        if ($titleMatch) {
+            $relevance += 100;
+            // Bonus for exact title match
+            if ($titleLower === $query) {
+                $relevance += 50;
+            }
+            // Bonus for title starting with query
+            if (str_starts_with($titleLower, $query)) {
+                $relevance += 25;
+            }
+        }
+        if ($contentMatch) {
+            $relevance += 10;
+            // Count occurrences (up to 10)
+            $occurrences = min(10, substr_count($contentLower, $query));
+            $relevance += $occurrences;
+        }
+
+        // Extract preview snippet
+        $preview = '';
+        if ($contentMatch && !$titleMatch) {
+            $pos = mb_stripos($content, $query);
+            if ($pos !== false) {
+                $start = max(0, $pos - 50);
+                $length = 150;
+                $preview = mb_substr($content, $start, $length);
+                // Clean up preview
+                $preview = preg_replace('/^#.*$/m', '', $preview); // Remove headings
+                $preview = preg_replace('/\s+/', ' ', $preview); // Normalize whitespace
+                $preview = trim($preview);
+                if ($start > 0) {
+                    $preview = '...' . $preview;
+                }
+                if (mb_strlen($content) > $start + $length) {
+                    $preview .= '...';
+                }
+            }
+        }
+
+        $results[] = [
+            'slug' => $slug,
+            'title' => $title,
+            'preview' => $preview,
+            'titleMatch' => $titleMatch,
+            'relevance' => $relevance,
+            'isIndex' => $isIndex,
+        ];
+    }
 }

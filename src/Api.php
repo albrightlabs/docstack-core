@@ -48,6 +48,10 @@ class Api
                     $this->handleUpload($method);
                     break;
 
+                case 'search':
+                    $this->handleSearch($method);
+                    break;
+
                 default:
                     $this->error('Unknown endpoint', 404);
             }
@@ -200,6 +204,31 @@ class Api
                 'url' => '/uploads/' . $filename,
                 'filename' => pathinfo($file['name'], PATHINFO_FILENAME)
             ]
+        ]);
+    }
+
+    /**
+     * Handle search endpoint
+     */
+    private function handleSearch(string $method): void
+    {
+        if ($method !== 'GET') {
+            $this->error('Method not allowed', 405);
+            return;
+        }
+
+        $query = $_GET['q'] ?? '';
+
+        if (empty($query)) {
+            $this->json(['success' => true, 'data' => []]);
+            return;
+        }
+
+        $results = $this->content->searchFiles($query);
+
+        $this->json([
+            'success' => true,
+            'data' => $results,
         ]);
     }
 
