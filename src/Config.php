@@ -103,7 +103,7 @@ class Config
             'content_dir' => 'content',
 
             // Display
-            'preserve_case_words' => ['DM', 'LinkedIn', 'API', 'CMS', 'SaaS', 'AI', 'ROI', 'SOP', 'AWS', 'SSO', 'PDF', 'EC2', 'CTO', 'CEO', 'CFO', 'URL', 'HTML', 'CSS', 'PHP', 'SQL', 'JSON', 'XML', 'REST', 'SDK', 'CLI', 'UI', 'UX'],
+            'preserve_case_words' => ['DM', 'LinkedIn', 'API', 'CMS', 'SaaS', 'AI', 'ROI', 'SOP', 'AWS', 'SSO', 'PDF', 'EC2', 'CTO', 'CEO', 'CFO', 'URL', 'HTML', 'CSS', 'PHP', 'SQL', 'JSON', 'XML', 'REST', 'SDK', 'CLI', 'UI', 'UX', 'WIP'],
         ];
     }
 

@@ -307,6 +307,9 @@ if (!empty($breadcrumb)) {
 // Page title
 $pageTitle = $doc['title'];
 
+// Last modified date
+$lastModified = $doc['lastModified'] ?? null;
+
 // Current path for sidebar highlighting
 $currentPath = $path ?: 'index';
 

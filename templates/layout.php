@@ -78,10 +78,6 @@
                         <div class="user-menu-dropdown" id="user-menu-dropdown">
                             <div class="user-menu-info">
                                 <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                                <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?php
-                                    $role = $currentUser['role'] ?? 'readonly';
-                                    echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
-                                ?></span>
                             </div>
                             <?php if (\App\Auth::isAdmin()): ?>
                             <a href="/docs/users" class="user-menu-item">
@@ -92,6 +88,15 @@
                                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                 </svg>
                                 Manage Users
+                            </a>
+                            <?php endif; ?>
+                            <?php if (\App\Auth::canWrite()): ?>
+                            <a href="#" class="user-menu-item" onclick="event.preventDefault(); AdminEditor.showCleanupModal();">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Clean Up Uploads
                             </a>
                             <?php endif; ?>
                             <a href="/docs/logout" class="user-menu-item user-menu-item-danger">

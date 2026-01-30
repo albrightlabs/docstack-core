@@ -66,6 +66,44 @@ class Markdown
             $html
         );
 
+        // Transform file attachments (links to /uploads/ with document extensions)
+        $html = $this->transformAttachments($html);
+
+        return $html;
+    }
+
+    /**
+     * Transform file attachment links to styled blocks
+     * Detects links to /uploads/ with document extensions and renders them specially
+     */
+    private function transformAttachments(string $html): string
+    {
+        // Document extensions (non-image files)
+        $docExtensions = 'pdf|doc|docx|xls|xlsx|txt|csv|zip';
+
+        // Match <p> tags containing only a link to an uploaded document
+        // This ensures standalone attachment links get the full block treatment
+        $pattern = '/<p>\s*<a\s+([^>]*)href="(\/uploads\/[^"]+\.(' . $docExtensions . '))"([^>]*)>([^<]+)<\/a>\s*<\/p>/i';
+
+        $html = preg_replace_callback($pattern, function ($matches) {
+            $href = htmlspecialchars($matches[2], ENT_QUOTES, 'UTF-8');
+            $extension = strtolower($matches[3]);
+            $filename = htmlspecialchars($matches[5], ENT_QUOTES, 'UTF-8');
+
+            // Append extension to filename if not already present
+            $displayName = $filename;
+            if (!preg_match('/\.' . preg_quote($matches[3], '/') . '$/i', $filename)) {
+                $displayName = $filename . '.' . $extension;
+            }
+
+            return '<div class="doc-attachment">' .
+                '<span class="attachment-icon"></span>' .
+                '<a href="' . $href . '" target="_blank" rel="noopener noreferrer">' .
+                $displayName .
+                '</a>' .
+                '</div>';
+        }, $html);
+
         return $html;
     }
 

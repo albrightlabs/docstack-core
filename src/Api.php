@@ -52,6 +52,10 @@ class Api
                     $this->handleSearch($method);
                     break;
 
+                case 'cleanup-uploads':
+                    $this->handleCleanupUploads($method);
+                    break;
+
                 default:
                     $this->error('Unknown endpoint', 404);
             }
@@ -139,7 +143,28 @@ class Api
     }
 
     /**
-     * Handle image upload
+     * Allowed file types for upload
+     */
+    private const ALLOWED_FILE_TYPES = [
+        // Images
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/svg+xml' => 'svg',
+        // Documents
+        'application/pdf' => 'pdf',
+        'application/msword' => 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+        'application/vnd.ms-excel' => 'xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+        'text/plain' => 'txt',
+        'text/csv' => 'csv',
+        'application/zip' => 'zip',
+    ];
+
+    /**
+     * Handle file upload (images and documents)
      */
     private function handleUpload(string $method): void
     {
@@ -155,28 +180,37 @@ class Api
         $csrfToken = $_POST['csrf_token'] ?? null;
         $this->validateCsrf($csrfToken);
 
-        // Check if file was uploaded
-        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-            $this->error('No image file uploaded', 400);
+        // Check if file was uploaded (accept both 'image' and 'file' field names)
+        $file = null;
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['image'];
+        } elseif (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['file'];
+        }
+
+        if ($file === null) {
+            $this->error('No file uploaded', 400);
             return;
         }
 
-        $file = $_FILES['image'];
-
         // Validate file type
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mimeType = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
 
-        if (!in_array($mimeType, $allowedTypes)) {
-            $this->error('Invalid image type. Allowed: JPEG, PNG, GIF, WebP, SVG', 400);
+        if (!isset(self::ALLOWED_FILE_TYPES[$mimeType])) {
+            $this->error('Invalid file type. Allowed: JPEG, PNG, GIF, WebP, SVG, PDF, DOC, DOCX, XLS, XLSX, TXT, CSV, ZIP', 400);
             return;
         }
 
-        // Validate file size (max 5MB)
-        if ($file['size'] > 5 * 1024 * 1024) {
-            $this->error('Image must be less than 5MB', 400);
+        // Determine if this is an image or document
+        $isImage = str_starts_with($mimeType, 'image/');
+
+        // Validate file size (5MB for images, 10MB for documents)
+        $maxSize = $isImage ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+        if ($file['size'] > $maxSize) {
+            $maxMB = $isImage ? 5 : 10;
+            $this->error("File must be less than {$maxMB}MB", 400);
             return;
         }
 
@@ -187,13 +221,13 @@ class Api
         }
 
         // Generate unique filename
-        $extension = $this->getImageExtension($mimeType);
+        $extension = self::ALLOWED_FILE_TYPES[$mimeType];
         $filename = date('Y-m-d') . '-' . bin2hex(random_bytes(8)) . '.' . $extension;
         $filepath = $uploadsDir . '/' . $filename;
 
         // Move uploaded file
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-            $this->error('Failed to save image', 500);
+            $this->error('Failed to save file', 500);
             return;
         }
 
@@ -202,7 +236,8 @@ class Api
             'success' => true,
             'data' => [
                 'url' => '/uploads/' . $filename,
-                'filename' => pathinfo($file['name'], PATHINFO_FILENAME)
+                'filename' => pathinfo($file['name'], PATHINFO_FILENAME),
+                'type' => $isImage ? 'image' : 'document',
             ]
         ]);
     }
@@ -233,19 +268,92 @@ class Api
     }
 
     /**
-     * Get file extension from MIME type
+     * Handle cleanup of orphaned upload files
      */
-    private function getImageExtension(string $mimeType): string
+    private function handleCleanupUploads(string $method): void
     {
-        $extensions = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/gif' => 'gif',
-            'image/webp' => 'webp',
-            'image/svg+xml' => 'svg',
-        ];
+        if ($method !== 'POST' && $method !== 'GET') {
+            $this->error('Method not allowed', 405);
+            return;
+        }
 
-        return $extensions[$mimeType] ?? 'jpg';
+        $this->requireAuth();
+        $this->requireWriteAuth();
+
+        $data = [];
+        // For POST, validate CSRF
+        if ($method === 'POST') {
+            $data = $this->getJsonInput();
+            $this->validateCsrf($data['csrf_token'] ?? null);
+        }
+
+        $uploadsDir = dirname(__DIR__) . '/public/uploads';
+        $dryRun = $method === 'GET' || (!empty($data['dry_run']));
+
+        // Get referenced uploads from content
+        $referencedFiles = $this->content->getReferencedUploads();
+
+        // Get actual files in uploads directory
+        $actualFiles = [];
+        if (is_dir($uploadsDir)) {
+            $entries = scandir($uploadsDir);
+            if ($entries !== false) {
+                foreach ($entries as $entry) {
+                    if ($entry === '.' || $entry === '..' || $entry === '.gitkeep' || $entry === '.gitignore' || $entry === '.DS_Store') {
+                        continue;
+                    }
+                    $fullPath = $uploadsDir . '/' . $entry;
+                    if (is_file($fullPath)) {
+                        $actualFiles[] = $entry;
+                    }
+                }
+            }
+        }
+
+        // Find orphaned files (in uploads but not referenced)
+        $orphanedFiles = array_diff($actualFiles, $referencedFiles);
+        $deletedFiles = [];
+        $deletedSize = 0;
+
+        if (!$dryRun && !empty($orphanedFiles)) {
+            foreach ($orphanedFiles as $file) {
+                $filePath = $uploadsDir . '/' . $file;
+                if (file_exists($filePath)) {
+                    $deletedSize += filesize($filePath);
+                    if (unlink($filePath)) {
+                        $deletedFiles[] = $file;
+                    }
+                }
+            }
+        }
+
+        $this->json([
+            'success' => true,
+            'data' => [
+                'dry_run' => $dryRun,
+                'total_files' => count($actualFiles),
+                'referenced_files' => count($referencedFiles),
+                'orphaned_files' => array_values($orphanedFiles),
+                'orphaned_count' => count($orphanedFiles),
+                'deleted_files' => $deletedFiles,
+                'deleted_count' => count($deletedFiles),
+                'freed_bytes' => $deletedSize,
+                'freed_human' => $this->formatBytes($deletedSize),
+            ]
+        ]);
+    }
+
+    /**
+     * Format bytes to human readable string
+     */
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes === 0) {
+            return '0 B';
+        }
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = floor(log($bytes, 1024));
+        return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
     }
 
     /**

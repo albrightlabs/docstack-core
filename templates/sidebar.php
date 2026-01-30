@@ -30,7 +30,7 @@ function renderTree(array $items, string $currentPath, string $parentSlug = '', 
                 <?php if ($isNavOnly): ?>
                 <span class="sidebar-section-title"><?= $itemName ?></span>
                 <?php else: ?>
-                <a href="/docs/<?= $itemSlug ?>" class="sidebar-section-link sidebar-section-title"><?= $itemName ?></a>
+                <a href="/docs/<?= $itemSlug ?>" class="sidebar-section-link sidebar-section-title<?= $isActive ? ' active' : '' ?>"><?= $itemName ?></a>
                 <?php endif; ?>
                 <?php if (!$isNavOnly): ?>
                 <span class="sidebar-item-actions admin-only" style="display: none;">

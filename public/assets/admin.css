@@ -59,6 +59,18 @@
     color: var(--text-primary);
 }
 
+/* Ghost buttons in header need light colors against dark background */
+.header-right .admin-btn-ghost,
+.header-nav .admin-btn-ghost {
+    color: var(--header-text-muted);
+}
+
+.header-right .admin-btn-ghost:hover,
+.header-nav .admin-btn-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--header-text);
+}
+
 .admin-btn-sm {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
@@ -580,6 +592,49 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Cleanup Modal Specific Styles */
+.cleanup-summary {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.cleanup-summary p {
+    margin: 0 0 12px 0;
+}
+
+.cleanup-summary p:last-child {
+    margin-bottom: 0;
+}
+
+.cleanup-file-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 12px 0;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+    font-size: 12px;
+    list-style: none;
+}
+
+.cleanup-file-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.cleanup-file-list li:last-child {
+    border-bottom: none;
+}
+
+.cleanup-stats {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 12px;
 }
 
 /* Dark mode adjustments */

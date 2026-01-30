@@ -257,7 +257,7 @@ a:hover {
     height: 36px;
     padding: 0;
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 6px;
     color: var(--header-text);
     cursor: pointer;
@@ -266,7 +266,7 @@ a:hover {
 
 .user-menu-toggle:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
 .user-menu-dropdown {
@@ -623,6 +623,11 @@ a:hover {
     text-decoration: none;
 }
 
+.sidebar-section-link.active {
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
 .sidebar-section-content {
     padding-left: 12px;
 }
@@ -911,6 +916,42 @@ a:hover {
     border-top: 1px solid var(--border-color);
     margin: 0 0 16px 0;
     padding: 0;
+}
+
+/* Last modified date */
+.doc-last-modified {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+/* File attachments */
+.doc-attachment {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    padding: 14px 18px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+}
+
+.doc-attachment .attachment-icon::before {
+    content: "\1F4CE";
+    font-size: 18px;
+    line-height: 1;
+}
+
+.doc-attachment a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.doc-attachment a:hover {
+    text-decoration: underline;
 }
 
 /* ============================================

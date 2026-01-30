@@ -21,3 +21,9 @@ foreach ($sections as $s) {
 <article class="doc-content">
     <?= $html ?>
 </article>
+
+<?php if (!empty($lastModified)): ?>
+<div class="doc-last-modified">
+    Last updated <?= date('F j, Y', $lastModified) ?>
+</div>
+<?php endif; ?>

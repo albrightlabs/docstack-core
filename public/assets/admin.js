@@ -169,8 +169,8 @@ const AdminEditor = {
                             '<button class="format-btn" onclick="AdminEditor.triggerImageUpload()" title="Upload Image">' +
                                 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>' +
                             '</button>' +
-                            '<button class="format-btn" onclick="AdminEditor.insertFormat(\'code\')" title="Inline Code">' +
-                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' +
+                            '<button class="format-btn" onclick="AdminEditor.triggerFileUpload()" title="Upload File">' +
+                                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +
                             '</button>' +
                             '<button class="format-btn" onclick="AdminEditor.insertFormat(\'codeblock\')" title="Code Block">' +
                                 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 8 5 12 9 16"/><polyline points="15 8 19 12 15 16"/></svg>' +
@@ -191,6 +191,7 @@ const AdminEditor = {
                     '</div>' +
                     '<div id="monaco-editor"></div>' +
                     '<input type="file" id="image-upload-input" accept="image/*" style="display: none;" onchange="AdminEditor.handleImageUpload(this)">' +
+                    '<input type="file" id="file-upload-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip" style="display: none;" onchange="AdminEditor.handleFileUpload(this)">' +
                 '</div>' +
                 '<div class="editor-pane editor-pane-preview doc-content" id="editor-preview"></div>' +
             '</div>' +
@@ -444,6 +445,86 @@ const AdminEditor = {
         })
         .catch(function(error) {
             self.showToast('Failed to upload image', 'error');
+        });
+
+        // Reset input so same file can be uploaded again
+        input.value = '';
+    },
+
+    /**
+     * Trigger file upload file picker
+     */
+    triggerFileUpload: function() {
+        var input = document.getElementById('file-upload-input');
+        if (input) {
+            input.click();
+        }
+    },
+
+    /**
+     * Handle document file upload
+     */
+    handleFileUpload: function(input) {
+        var self = this;
+        var file = input.files[0];
+
+        if (!file) return;
+
+        // Validate file type
+        var allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/plain',
+            'text/csv',
+            'application/zip'
+        ];
+        var allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'csv', 'zip'];
+        var ext = file.name.split('.').pop().toLowerCase();
+
+        if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(ext)) {
+            this.showToast('Invalid file type. Allowed: PDF, DOC, DOCX, XLS, XLSX, TXT, CSV, ZIP', 'error');
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            this.showToast('File must be less than 10MB', 'error');
+            return;
+        }
+
+        // Show uploading indicator
+        this.showToast('Uploading file...', 'success');
+
+        // Create FormData and upload
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('csrf_token', this.csrfToken);
+
+        fetch(this.apiBase + '/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                // Insert markdown link at cursor - will be transformed to attachment block
+                var fileMarkdown = '[' + (data.data.filename || file.name) + '](' + data.data.url + ')';
+                self.editor.executeEdits('', [{
+                    range: self.editor.getSelection(),
+                    text: fileMarkdown,
+                    forceMoveMarkers: true
+                }]);
+                self.editor.focus();
+                self.showToast('File uploaded successfully', 'success');
+            } else {
+                self.showToast(data.error || 'Failed to upload file', 'error');
+            }
+        })
+        .catch(function(error) {
+            self.showToast('Failed to upload file', 'error');
         });
 
         // Reset input so same file can be uploaded again
@@ -771,6 +852,142 @@ const AdminEditor = {
         setTimeout(function() {
             toast.style.display = 'none';
         }, 3000);
+    },
+
+    /**
+     * Show cleanup uploads modal with preview
+     */
+    showCleanupModal: function() {
+        if (!this.isAuthenticated) {
+            return;
+        }
+
+        var self = this;
+
+        // First, do a dry run to get the preview
+        fetch(this.apiBase + '/cleanup-uploads')
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success) {
+                    self.displayCleanupModal(data.data);
+                } else {
+                    self.showToast(data.error || 'Failed to analyze uploads', 'error');
+                }
+            })
+            .catch(function(error) {
+                console.error('Cleanup error:', error);
+                self.showToast('Failed to analyze uploads: ' + error.message, 'error');
+            });
+    },
+
+    /**
+     * Display cleanup modal with data
+     */
+    displayCleanupModal: function(data) {
+        // Create modal if it doesn't exist
+        var modal = document.getElementById('admin-cleanup-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'admin-cleanup-modal';
+            modal.className = 'admin-modal';
+            modal.innerHTML =
+                '<div class="admin-modal-backdrop" onclick="AdminEditor.closeCleanupModal()"></div>' +
+                '<div class="admin-modal-content">' +
+                    '<div class="admin-modal-header">' +
+                        '<h3>Clean Up Unused Uploads</h3>' +
+                        '<button type="button" class="admin-modal-close" onclick="AdminEditor.closeCleanupModal()">' +
+                            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                                '<line x1="18" y1="6" x2="6" y2="18"></line>' +
+                                '<line x1="6" y1="6" x2="18" y2="18"></line>' +
+                            '</svg>' +
+                        '</button>' +
+                    '</div>' +
+                    '<div class="admin-modal-body" id="cleanup-modal-body"></div>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+
+        var body = document.getElementById('cleanup-modal-body');
+
+        if (data.orphaned_count === 0) {
+            body.innerHTML =
+                '<div class="cleanup-summary">' +
+                    '<p><strong>No unused files found.</strong></p>' +
+                    '<p class="admin-warning">All ' + data.total_files + ' uploaded files are referenced in your content.</p>' +
+                '</div>' +
+                '<div class="admin-modal-actions">' +
+                    '<button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeCleanupModal()">Close</button>' +
+                '</div>';
+        } else {
+            var fileList = data.orphaned_files.map(function(f) {
+                return '<li>' + AdminEditor.escapeHtml(f) + '</li>';
+            }).join('');
+
+            body.innerHTML =
+                '<div class="cleanup-summary">' +
+                    '<p><strong>' + data.orphaned_count + ' unused file' + (data.orphaned_count !== 1 ? 's' : '') + ' found</strong></p>' +
+                    '<p class="admin-warning">These files are in the uploads folder but not referenced in any content:</p>' +
+                    '<ul class="cleanup-file-list">' + fileList + '</ul>' +
+                    '<p class="cleanup-stats">' +
+                        'Total uploads: ' + data.total_files + ' &bull; ' +
+                        'Referenced: ' + data.referenced_files + ' &bull; ' +
+                        'Orphaned: ' + data.orphaned_count +
+                    '</p>' +
+                '</div>' +
+                '<div class="admin-modal-actions">' +
+                    '<button type="button" class="admin-btn admin-btn-secondary" onclick="AdminEditor.closeCleanupModal()">Cancel</button>' +
+                    '<button type="button" class="admin-btn admin-btn-danger" onclick="AdminEditor.executeCleanup()">Delete ' + data.orphaned_count + ' File' + (data.orphaned_count !== 1 ? 's' : '') + '</button>' +
+                '</div>';
+        }
+
+        modal.classList.add('show');
+    },
+
+    /**
+     * Close cleanup modal
+     */
+    closeCleanupModal: function() {
+        var modal = document.getElementById('admin-cleanup-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    },
+
+    /**
+     * Execute the cleanup (delete orphaned files)
+     */
+    executeCleanup: function() {
+        var self = this;
+
+        fetch(this.apiBase + '/cleanup-uploads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                csrf_token: this.csrfToken,
+                dry_run: false
+            })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                self.closeCleanupModal();
+                if (data.data.deleted_count > 0) {
+                    self.showToast('Deleted ' + data.data.deleted_count + ' file(s), freed ' + data.data.freed_human, 'success');
+                } else {
+                    self.showToast('No files were deleted', 'success');
+                }
+            } else {
+                self.showToast(data.error || 'Failed to clean up files', 'error');
+            }
+        })
+        .catch(function(error) {
+            self.showToast('Failed to clean up files', 'error');
+        });
     }
 };
 

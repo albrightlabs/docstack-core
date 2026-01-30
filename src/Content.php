@@ -144,6 +144,7 @@ class Content
             'title' => $this->extractTitle($markdown) ?? getDisplayName(basename($resolved['path'])),
             'markdown' => $markdown,
             'isIndex' => $resolved['isIndex'],
+            'lastModified' => filemtime($resolved['path']),
         ];
     }
 
@@ -695,5 +696,53 @@ class Content
             'relevance' => $relevance,
             'isIndex' => $isIndex,
         ];
+    }
+
+    /**
+     * Get all upload file references from all content files
+     * Scans markdown content for /uploads/ references
+     * @return array List of referenced upload filenames (without path)
+     */
+    public function getReferencedUploads(): array
+    {
+        $references = [];
+        $this->scanForUploadReferences($this->contentDir, $references);
+        return array_unique($references);
+    }
+
+    /**
+     * Recursively scan files for upload references
+     */
+    private function scanForUploadReferences(string $dir, array &$references): void
+    {
+        $entries = scandir($dir);
+        if ($entries === false) {
+            return;
+        }
+
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $fullPath = $dir . '/' . $entry;
+
+            if (is_dir($fullPath)) {
+                $this->scanForUploadReferences($fullPath, $references);
+            } elseif (pathinfo($entry, PATHINFO_EXTENSION) === 'md') {
+                $content = file_get_contents($fullPath);
+                if ($content === false) {
+                    continue;
+                }
+
+                // Match /uploads/filename patterns in markdown
+                // Handles: ![alt](/uploads/file.jpg), [text](/uploads/file.pdf), src="/uploads/file.png"
+                if (preg_match_all('/\/uploads\/([^\s\)\]"\']+)/i', $content, $matches)) {
+                    foreach ($matches[1] as $filename) {
+                        $references[] = $filename;
+                    }
+                }
+            }
+        }
     }
 }
