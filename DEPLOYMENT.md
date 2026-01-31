@@ -55,7 +55,8 @@ git clone https://github.com/your-org/your-docstack.git /home/forge/$DOMAIN/repo
 git config --global credential.helper store
 
 # Create credentials file (use a GitHub Personal Access Token)
-echo "https://your-username:YOUR_GITHUB_PAT@github.com" > /home/forge/.git-credentials
+# Format: https://USERNAME:TOKEN@github.com
+nano /home/forge/.git-credentials
 chmod 600 /home/forge/.git-credentials
 
 # Test that push works
