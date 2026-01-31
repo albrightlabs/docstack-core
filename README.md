@@ -72,6 +72,14 @@ location / {
 }
 ```
 
+### Deployment with Laravel Forge
+
+For zero-downtime deployments with content persistence, see [DEPLOYMENT.md](DEPLOYMENT.md). This covers:
+
+- Preserving user accounts across deployments
+- Syncing server-side content changes back to git
+- Preventing deployment loops
+
 ## Content Structure
 
 Top-level directories become tabs in the header. Subdirectories become sections in the sidebar.
