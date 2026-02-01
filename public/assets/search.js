@@ -131,9 +131,14 @@
         },
 
         open: function() {
+            var self = this;
             this.searchModal.classList.add('show');
-            this.searchInput.focus();
             document.body.style.overflow = 'hidden';
+            // Use requestAnimationFrame to ensure focus happens after modal is visible
+            requestAnimationFrame(function() {
+                self.searchInput.focus();
+                self.searchInput.select();
+            });
         },
 
         close: function() {
