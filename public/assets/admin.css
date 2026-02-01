@@ -154,11 +154,11 @@
 }
 
 .admin-modal-close {
-    background: none;
+    background: transparent;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px;
+    padding: 8px;
     border-radius: 4px;
     flex-shrink: 0;
     display: flex;
