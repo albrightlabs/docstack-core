@@ -126,12 +126,19 @@ chmod -R 775 public/uploads
 # ═══════════════════════════════════════════════════════════════════════════════
 # Copy users from previous release (preserves accounts across deploys)
 PREVIOUS_USERS="/home/forge/$DOMAIN/current/data/users.json"
+PREVIOUS_UPLOADS="/home/forge/$DOMAIN/current/public/uploads"
+
 if [ -f "$PREVIOUS_USERS" ]; then
     cp "$PREVIOUS_USERS" data/users.json
     echo "Preserved user accounts from previous release."
 elif [ -f "data/users.json.example" ]; then
     cp data/users.json.example data/users.json
     echo "Created fresh users.json from template."
+fi
+
+if [ -d "$PREVIOUS_UPLOADS" ]; then
+    cp -r "$PREVIOUS_UPLOADS"/* public/uploads/ 2>/dev/null || true
+    echo "Preserved uploads from previous release."
 fi
 
 $ACTIVATE_RELEASE()
