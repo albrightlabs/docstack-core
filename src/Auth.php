@@ -295,6 +295,14 @@ class Auth
             $_SESSION['auth_time'] = time();
         }
 
+        // Verify user still exists in database (prevents stale session issues)
+        $user = self::getUserManager()->getById($_SESSION['user_id']);
+        if ($user === null) {
+            // User no longer exists - clear the invalid session
+            self::logout();
+            return false;
+        }
+
         return true;
     }
 
