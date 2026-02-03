@@ -63,17 +63,18 @@ $isAuthenticated = Auth::check();
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
-            text-decoration: none;
+            text-decoration: none !important;
             transition: all 0.15s;
         }
 
         .error-btn-primary {
             background: var(--accent-color, #0066cc);
-            color: white;
+            color: white !important;
         }
 
         .error-btn-primary:hover {
             background: var(--accent-hover, #0052a3);
+            color: white !important;
         }
 
         .error-btn-secondary {
@@ -115,12 +116,18 @@ $isAuthenticated = Auth::check();
         <h1 class="error-title">Access Denied</h1>
         <p class="error-message">
             <?php if ($isAuthenticated): ?>
-            You don't have permission to access this content. Please contact an administrator if you believe this is an error.
+            You don't have permission to access this content.
             <?php else: ?>
             Please log in to access this content.
             <?php endif; ?>
         </p>
         <div class="error-actions">
+            <a href="javascript:history.back()" class="error-btn error-btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Go Back
+            </a>
             <?php if ($isAuthenticated): ?>
             <a href="/docs" class="error-btn error-btn-primary">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -139,12 +146,6 @@ $isAuthenticated = Auth::check();
                 Log In
             </a>
             <?php endif; ?>
-            <a href="javascript:history.back()" class="error-btn error-btn-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                Go Back
-            </a>
         </div>
     </div>
 
