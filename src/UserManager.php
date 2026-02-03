@@ -262,8 +262,8 @@ class UserManager
             return false;
         }
 
-        // Super admins, admins, and editors always have full access
-        if ($user['is_super_admin'] || $user['role'] === 'admin' || $user['role'] === 'editor') {
+        // Super admins and admins always have full access
+        if ($user['is_super_admin'] || $user['role'] === 'admin') {
             return true;
         }
 
@@ -303,8 +303,8 @@ class UserManager
             return [];
         }
 
-        // Super admins, admins, and editors can see everything
-        if ($user['is_super_admin'] || $user['role'] === 'admin' || $user['role'] === 'editor') {
+        // Super admins and admins can see everything
+        if ($user['is_super_admin'] || $user['role'] === 'admin') {
             return ['*'];
         }
 
