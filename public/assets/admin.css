@@ -669,4 +669,23 @@
     .editor-toolbar-right button[onclick*="togglePreview"] {
         display: none;
     }
+
+    /* Hide format toolbar on mobile - too many buttons */
+    .editor-format-toolbar {
+        display: none;
+    }
+
+    /* Hide file path on mobile - takes too much space */
+    .editor-path {
+        display: none;
+    }
+
+    /* Compact editor toolbar on mobile */
+    .editor-toolbar {
+        padding: 0.5rem;
+    }
+
+    .editor-toolbar-right {
+        gap: 0.5rem;
+    }
 }
