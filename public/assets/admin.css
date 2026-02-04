@@ -643,3 +643,14 @@
         background-color: rgba(0, 0, 0, 0.7);
     }
 }
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .admin-badge {
+        display: none;
+    }
+
+    .admin-controls {
+        gap: 0.25rem;
+    }
+}

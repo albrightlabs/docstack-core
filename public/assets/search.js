@@ -113,7 +113,8 @@
                 if (result) {
                     var slug = result.dataset.slug;
                     if (slug) {
-                        window.location.href = '/docs/' + slug;
+                        var basePath = (window.AdminState && window.AdminState.basePath) || '';
+                        window.location.href = basePath + '/' + slug;
                     }
                 }
             });
@@ -289,7 +290,8 @@
 
         selectCurrent: function() {
             if (this.selectedIndex >= 0 && this.results[this.selectedIndex]) {
-                window.location.href = '/docs/' + this.results[this.selectedIndex].slug;
+                var basePath = (window.AdminState && window.AdminState.basePath) || '';
+                window.location.href = basePath + '/' + this.results[this.selectedIndex].slug;
             }
         }
     };

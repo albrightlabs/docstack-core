@@ -109,6 +109,11 @@ $csrfToken = Auth::getCsrfToken();
             gap: var(--space-4);
         }
 
+        .user-card-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
         .user-card-email {
             font-weight: normal;
             color: var(--text-primary);
@@ -351,12 +356,37 @@ $csrfToken = Auth::getCsrfToken();
             .user-card {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: var(--space-3);
+                gap: var(--space-4);
+            }
+
+            .user-card-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+                width: 100%;
+            }
+
+            .user-card-name {
+                font-weight: 600;
+                font-size: 15px;
+            }
+
+            .user-card-email {
+                font-size: 14px;
+                color: var(--text-muted);
+                word-break: break-all;
+            }
+
+            .user-card-meta {
+                flex-wrap: wrap;
             }
 
             .user-card-actions {
                 width: 100%;
                 justify-content: flex-end;
+                padding-top: var(--space-2);
+                border-top: 1px solid var(--border-color);
+                margin-top: var(--space-2);
             }
         }
 
@@ -436,10 +466,6 @@ $csrfToken = Auth::getCsrfToken();
                     <div class="user-menu-info">
                         <span class="user-menu-name"><?= htmlspecialchars($currentUser['name'] ?? '') ?></span>
                         <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                        <span class="user-menu-role role-<?= htmlspecialchars($currentUser['role'] ?? 'readonly') ?>"><?php
-                            $role = $currentUser['role'] ?? 'readonly';
-                            echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
-                        ?></span>
                     </div>
                     <a href="<?= $basePath ?>/logout" class="user-menu-item user-menu-item-danger">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

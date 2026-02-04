@@ -189,12 +189,13 @@
         authenticated: true,
         csrfToken: <?= json_encode($csrfToken ?? null) ?>,
         currentPath: <?= json_encode($currentPath ?? '') ?>,
-        editingEnabled: true
+        editingEnabled: true,
+        basePath: <?= json_encode($basePath) ?>
     };
     </script>
     <?php else: ?>
     <script>
-    window.AdminState = { authenticated: false, editingEnabled: false };
+    window.AdminState = { authenticated: false, editingEnabled: false, basePath: <?= json_encode($basePath) ?> };
     </script>
     <?php endif; ?>
     <?php if (file_exists(__DIR__ . '/../public/assets/custom.js')): ?>

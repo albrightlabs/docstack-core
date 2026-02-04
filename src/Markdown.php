@@ -153,8 +153,9 @@ class Markdown
         $parts = array_map(fn($p) => stripPrefix($p), $parts);
         $href = implode('/', $parts);
 
-        // Build final URL
-        $url = '/docs/' . $href;
+        // Build final URL using configured base path
+        $basePath = Config::getBasePath();
+        $url = $basePath . '/' . $href;
 
         // Handle index pages
         if (str_ends_with($url, '/index')) {

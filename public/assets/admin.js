@@ -10,7 +10,7 @@ const AdminEditor = {
     originalContent: null,
     hasUnsavedChanges: false,
     previewVisible: true,
-    apiBase: '/docs/api', // Base URL for API calls
+    apiBase: '/api', // Base URL for API calls (updated in init)
 
     /**
      * Initialize admin functionality
@@ -20,6 +20,8 @@ const AdminEditor = {
         if (window.AdminState) {
             this.isAuthenticated = window.AdminState.authenticated;
             this.csrfToken = window.AdminState.csrfToken;
+            this.basePath = window.AdminState.basePath || '';
+            this.apiBase = this.basePath + '/api';
         }
 
         // Show admin-only elements if authenticated
@@ -67,15 +69,21 @@ const AdminEditor = {
      */
     enterEditMode: function(path) {
         if (!this.isAuthenticated) {
-            window.location.href = '/docs/login';
+            window.location.href = this.basePath + '/login';
             return;
         }
 
-        // Store current path
-        this.currentFile = path || window.location.pathname.replace(/^\/docs\/?/, '');
+        // Store current path - remove base path prefix
+        var basePathRegex = new RegExp('^' + this.basePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/?');
+        this.currentFile = path || window.location.pathname.replace(basePathRegex, '');
 
         // Fetch file content
-        fetch(this.apiBase + '/files/' + this.currentFile)
+        fetch(this.apiBase + '/files/' + this.currentFile, {
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-Token': this.csrfToken || ''
+            }
+        })
             .then(function(response) { return response.json(); })
             .then(function(data) {
                 if (data.success) {

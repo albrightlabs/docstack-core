@@ -63,8 +63,9 @@ if ($isAllowedOrigin) {
     header('Access-Control-Allow-Credentials: true');
 }
 
-// Remove /docs prefix if present, then handle /api prefix
-$path = preg_replace('/^\/docs/', '', $requestUri);
+// Remove base path prefix if present, then handle /api prefix
+$basePath = Config::getBasePath();
+$path = $basePath ? preg_replace('/^' . preg_quote($basePath, '/') . '/', '', $requestUri) : $requestUri;
 
 // Route to appropriate API handler
 if (str_starts_with($path, '/api/auth/') || str_starts_with($path, '/api/users') || $path === '/api/content/tree') {
