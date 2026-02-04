@@ -3,18 +3,25 @@ declare(strict_types=1);
 
 use App\Auth;
 use App\Config;
+use App\Content;
 
 $branding = Config::getBranding();
 $basePath = Config::getBasePath();
 $appName = $branding['site_name'];
 $csrfToken = Auth::getCsrfToken();
+
+// Load sections for header tabs
+$contentDir = __DIR__ . '/../' . Config::get('content_dir', 'content');
+$content = new Content($contentDir);
+$sections = $content->getSections();
+$currentSection = null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - <?= htmlspecialchars($appName) ?></title>
+    <title>User Management | <?= htmlspecialchars($appName) ?></title>
     <link rel="icon" type="image/png" href="<?= !empty($branding['favicon_url']) ? htmlspecialchars($branding['favicon_url']) : '/assets/favicon.png' ?>">
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/admin.css">
@@ -445,40 +452,7 @@ $csrfToken = Auth::getCsrfToken();
     </style>
 </head>
 <body>
-    <header class="site-header">
-        <div class="header-content" style="flex-direction: row; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px;">
-            <a href="<?= $basePath ?>" class="site-logo">
-                <?php if (!empty($branding['logo_url'])): ?>
-                <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>" style="height: 32px; width: auto;">
-                <?php else: ?>
-                <span class="site-logo-emoji"><?= $branding['site_emoji'] ?></span>
-                <span><?= htmlspecialchars($branding['site_name']) ?></span>
-                <?php endif; ?>
-            </a>
-            <div class="user-menu" id="user-menu">
-                <button type="button" class="user-menu-toggle" id="user-menu-toggle">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </button>
-                <div class="user-menu-dropdown" id="user-menu-dropdown">
-                    <div class="user-menu-info">
-                        <span class="user-menu-name"><?= htmlspecialchars($currentUser['name'] ?? '') ?></span>
-                        <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
-                    </div>
-                    <a href="<?= $basePath ?>/logout" class="user-menu-item user-menu-item-danger">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        Sign Out
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php include __DIR__ . '/header.php'; ?>
 
     <div class="users-page-container">
         <div class="users-page">

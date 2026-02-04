@@ -687,6 +687,10 @@ a:hover {
         height: 24px;
     }
 
+    .header-right {
+        gap: 4px;
+    }
+
     .content {
         padding: 20px;
     }

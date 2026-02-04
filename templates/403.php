@@ -13,7 +13,7 @@ $isAuthenticated = Auth::check();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Access Denied - <?= htmlspecialchars($branding['site_name']) ?></title>
+    <title>Access Denied | <?= htmlspecialchars($branding['site_name']) ?></title>
     <link rel="icon" type="image/png" href="<?= !empty($branding['favicon_url']) ? htmlspecialchars($branding['favicon_url']) : '/assets/favicon.png' ?>">
     <link rel="stylesheet" href="/assets/style.css">
     <style>

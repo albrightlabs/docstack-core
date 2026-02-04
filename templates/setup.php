@@ -14,7 +14,7 @@ $error = $error ?? null;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setup - <?= htmlspecialchars($appName) ?></title>
+    <title>Setup | <?= htmlspecialchars($appName) ?></title>
     <link rel="icon" type="image/png" href="<?= !empty($branding['favicon_url']) ? htmlspecialchars($branding['favicon_url']) : '/assets/favicon.png' ?>">
     <link rel="stylesheet" href="/assets/style.css">
     <?php if ($branding['color_primary'] !== '#3b82f6'): ?>

@@ -10,7 +10,7 @@ $branding = Config::getBranding();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigate to Content - <?= htmlspecialchars($branding['site_name']) ?></title>
+    <title>Navigate to Content | <?= htmlspecialchars($branding['site_name']) ?></title>
     <link rel="stylesheet" href="/assets/style.css">
     <style>
         .nav-only-container {

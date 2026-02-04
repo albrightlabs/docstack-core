@@ -98,7 +98,7 @@
 .admin-modal {
     position: fixed;
     inset: 0;
-    z-index: 1000;
+    z-index: 1100;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -652,5 +652,21 @@
 
     .admin-controls {
         gap: 0.25rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .sidebar-admin-actions {
+        padding-top: 48px;
+    }
+
+    /* Hide editor preview on mobile - screen too small for split view */
+    .editor-pane-preview {
+        display: none !important;
+    }
+
+    /* Hide preview toggle button on mobile */
+    .editor-toolbar-right button[onclick*="togglePreview"] {
+        display: none;
     }
 }
