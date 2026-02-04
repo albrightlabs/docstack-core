@@ -5,6 +5,7 @@ use App\Auth;
 use App\Config;
 
 $branding = Config::getBranding();
+$basePath = Config::getBasePath();
 $appName = $branding['site_name'];
 $error = $error ?? null;
 ?>
@@ -35,7 +36,7 @@ $error = $error ?? null;
         <div class="password-error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="/docs/setup" class="password-form" id="setup-form">
+        <form method="POST" action="<?= $basePath ?>/setup" class="password-form" id="setup-form">
             <?= Auth::csrfField() ?>
             <input type="text" id="name" name="name" class="password-input"
                    placeholder="Your name"

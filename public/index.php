@@ -17,6 +17,7 @@ $dotenv->safeLoad();
 // Initialize configuration
 $config = Config::getInstance();
 $branding = Config::getBranding();
+$basePath = Config::getBasePath();
 
 // Initialize services
 $contentDir = __DIR__ . '/../' . Config::get('content_dir', 'content');
@@ -30,8 +31,11 @@ Auth::init();
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 $path = trim($requestUri, '/');
 
-// Remove 'docs' prefix if present
-$path = preg_replace('/^docs\/?/', '', $path);
+// Remove base path prefix if present (e.g., 'docs')
+$basePathTrimmed = trim($basePath, '/');
+if (!empty($basePathTrimmed)) {
+    $path = preg_replace('/^' . preg_quote($basePathTrimmed, '/') . '\/?/', '', $path);
+}
 
 // Handle asset requests
 if (preg_match('/\.(css|js|png|jpg|gif|svg|ico)$/i', $requestUri)) {
@@ -46,7 +50,7 @@ if (str_starts_with($path, 'api/') || $path === 'api') {
 
 // Check if setup is needed (no users exist)
 if (!Auth::hasAnyUsers() && $path !== 'setup') {
-    header('Location: /docs/setup');
+    header('Location: ' . $basePath . '/setup');
     exit;
 }
 
@@ -54,7 +58,7 @@ if (!Auth::hasAnyUsers() && $path !== 'setup') {
 if ($path === 'setup') {
     // If users already exist, redirect to login
     if (Auth::hasAnyUsers()) {
-        header('Location: /docs/login');
+        header('Location: ' . $basePath . '/login');
         exit;
     }
 
@@ -87,7 +91,7 @@ if ($path === 'setup') {
                     // Auto-login the new user
                     Auth::login($email, $password);
 
-                    header('Location: /docs');
+                    header('Location: ' . ($basePath ?: '/'));
                     exit;
                 } catch (\Exception $e) {
                     $error = $e->getMessage();
@@ -103,7 +107,7 @@ if ($path === 'setup') {
 // Handle login page
 if ($path === 'login') {
     if (Auth::check()) {
-        header('Location: /docs');
+        header('Location: ' . ($basePath ?: '/'));
         exit;
     }
 
@@ -120,7 +124,7 @@ if ($path === 'login') {
             $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
             if (Auth::login($email, $password)) {
-                header('Location: /docs');
+                header('Location: ' . ($basePath ?: '/'));
                 exit;
             } else {
                 // Check if now rate limited after failed attempt
@@ -142,14 +146,14 @@ if ($path === 'login') {
 // Handle logout
 if ($path === 'logout') {
     Auth::logout();
-    header('Location: /docs/login');
+    header('Location: ' . $basePath . '/login');
     exit;
 }
 
 // Handle users page (admin only)
 if ($path === 'users') {
     if (!Auth::check()) {
-        header('Location: /docs/login');
+        header('Location: ' . $basePath . '/login');
         exit;
     }
     if (!Auth::isAdmin()) {
@@ -165,7 +169,7 @@ if ($path === 'users') {
 // Handle user edit page (admin only)
 if (preg_match('#^users/([a-f0-9-]+)/edit$#', $path, $matches)) {
     if (!Auth::check()) {
-        header('Location: /docs/login');
+        header('Location: ' . $basePath . '/login');
         exit;
     }
     if (!Auth::isAdmin()) {
@@ -192,7 +196,7 @@ if (preg_match('#^users/([a-f0-9-]+)/edit$#', $path, $matches)) {
 
 // Require authentication for all content if enabled
 if (Config::feature('require_auth') && !Auth::check()) {
-    header('Location: /docs/login');
+    header('Location: ' . $basePath . '/login');
     exit;
 }
 
@@ -205,7 +209,7 @@ $currentSection = $pathParts[0] ?? null;
 
 // If no path or root, redirect to first section
 if (empty($path) && !empty($sections)) {
-    header('Location: /docs/' . $sections[0]['slug']);
+    header('Location: ' . $basePath . '/' . $sections[0]['slug']);
     exit;
 }
 

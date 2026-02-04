@@ -102,6 +102,9 @@ class Config
             // Content
             'content_dir' => 'content',
 
+            // URL Configuration
+            'base_path' => '/docs',
+
             // Display
             'preserve_case_words' => ['DM', 'LinkedIn', 'API', 'CMS', 'SaaS', 'AI', 'ROI', 'SOP', 'AWS', 'SSO', 'PDF', 'EC2', 'CTO', 'CEO', 'CFO', 'URL', 'HTML', 'CSS', 'PHP', 'SQL', 'JSON', 'XML', 'REST', 'SDK', 'CLI', 'UI', 'UX', 'WIP'],
         ];
@@ -154,6 +157,9 @@ class Config
 
             // Content
             'CONTENT_DIR' => 'content_dir',
+
+            // URL Configuration
+            'BASE_PATH' => 'base_path',
         ];
 
         foreach ($envMap as $envKey => $configKey) {
@@ -170,6 +176,25 @@ class Config
                 $this->config[$configKey] = $value;
             }
         }
+    }
+
+    /**
+     * Get the base path for URLs (e.g., '/docs' or '')
+     * Ensures proper formatting: starts with / (unless empty), no trailing /
+     */
+    public static function getBasePath(): string
+    {
+        $path = self::get('base_path', '/docs');
+
+        // Handle empty/root path
+        if (empty($path) || $path === '/') {
+            return '';
+        }
+
+        // Ensure starts with / and no trailing /
+        $path = '/' . trim($path, '/');
+
+        return $path;
     }
 
     /**

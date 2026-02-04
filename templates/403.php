@@ -5,6 +5,7 @@ use App\Auth;
 use App\Config;
 
 $branding = Config::getBranding();
+$basePath = Config::getBasePath();
 $isAuthenticated = Auth::check();
 ?>
 <!DOCTYPE html>
@@ -129,7 +130,7 @@ $isAuthenticated = Auth::check();
                 Go Back
             </a>
             <?php if ($isAuthenticated): ?>
-            <a href="/docs" class="error-btn error-btn-primary">
+            <a href="<?= $basePath ?: '/' ?>" class="error-btn error-btn-primary">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -137,7 +138,7 @@ $isAuthenticated = Auth::check();
                 Go Home
             </a>
             <?php else: ?>
-            <a href="/docs/login" class="error-btn error-btn-primary">
+            <a href="<?= $basePath ?>/login" class="error-btn error-btn-primary">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>

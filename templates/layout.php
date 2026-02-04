@@ -28,7 +28,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <a href="/docs" class="site-logo">
+                <a href="<?= $basePath ?: '/' ?>" class="site-logo">
                     <?php if (!empty($branding['logo_url'])): ?>
                     <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>" style="height: 24px; width: auto;">
                     <?php else: ?>
@@ -40,7 +40,7 @@
             <div class="header-nav">
                 <nav class="header-tabs">
                     <?php foreach ($sections as $section): ?>
-                    <a href="/docs/<?= htmlspecialchars($section['slug']) ?>"
+                    <a href="<?= $basePath ?>/<?= htmlspecialchars($section['slug']) ?>"
                        class="header-tab<?= $currentSection === $section['slug'] ? ' active' : '' ?>">
                         <?= htmlspecialchars($section['name']) ?>
                     </a>
@@ -80,7 +80,7 @@
                                 <span class="user-menu-email"><?= htmlspecialchars($currentUser['email'] ?? '') ?></span>
                             </div>
                             <?php if (\App\Auth::isAdmin()): ?>
-                            <a href="/docs/users" class="user-menu-item">
+                            <a href="<?= $basePath ?>/users" class="user-menu-item">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
@@ -106,7 +106,7 @@
                                 </svg>
                                 Change Password
                             </a>
-                            <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
+                            <a href="<?= $basePath ?>/logout" class="user-menu-item user-menu-item-danger">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                                     <polyline points="16 17 21 12 16 7"></polyline>
@@ -117,7 +117,7 @@
                         </div>
                     </div>
                     <?php elseif (!\App\Auth::check()): ?>
-                    <a href="/docs/login" class="admin-btn admin-btn-ghost admin-btn-sm">
+                    <a href="<?= $basePath ?>/login" class="admin-btn admin-btn-ghost admin-btn-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                         Sign In
                     </a>
@@ -145,7 +145,7 @@
                 <?php endif; ?>
                 <?php if ($branding['footer_show_powered_by']): ?>
                 <div class="powered-by">
-                    Powered by <a href="https://github.com/albrightlabs/docstack-core" target="_blank" rel="noopener">DocStack</a>
+                    Powered by <a href="https://github.com/albrightlabs<?= $basePath ?: '/' ?>tack-core" target="_blank" rel="noopener">DocStack</a>
                 </div>
                 <?php endif; ?>
             </div>

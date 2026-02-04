@@ -10,10 +10,10 @@ foreach ($sections as $s) {
 ?>
 <?php if (!empty($breadcrumb)): ?>
 <nav class="breadcrumb">
-    <a href="/docs/<?= htmlspecialchars($currentSection) ?>"><?= htmlspecialchars($currentSectionName) ?></a>
+    <a href="<?= $basePath ?>/<?= htmlspecialchars($currentSection) ?>"><?= htmlspecialchars($currentSectionName) ?></a>
     <?php foreach ($breadcrumb as $crumb): ?>
     <span class="breadcrumb-separator">/</span>
-    <a href="/docs/<?= htmlspecialchars($crumb['slug']) ?>"><?= htmlspecialchars($crumb['name']) ?></a>
+    <a href="<?= $basePath ?>/<?= htmlspecialchars($crumb['slug']) ?>"><?= htmlspecialchars($crumb['name']) ?></a>
     <?php endforeach; ?>
 </nav>
 <?php endif; ?>

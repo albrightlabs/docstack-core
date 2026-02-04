@@ -5,6 +5,7 @@ use App\Auth;
 use App\Config;
 
 $branding = Config::getBranding();
+$basePath = Config::getBasePath();
 $appName = $branding['site_name'];
 $csrfToken = Auth::getCsrfToken();
 ?>
@@ -363,7 +364,7 @@ $csrfToken = Auth::getCsrfToken();
 <body>
     <header class="site-header">
         <div class="header-content" style="flex-direction: row; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px;">
-            <a href="/docs" class="site-logo">
+            <a href="<?= $basePath ?>" class="site-logo">
                 <?php if (!empty($branding['logo_url'])): ?>
                 <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>" style="height: 32px; width: auto;">
                 <?php else: ?>
@@ -387,7 +388,7 @@ $csrfToken = Auth::getCsrfToken();
                             echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
                         ?></span>
                     </div>
-                    <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
+                    <a href="<?= $basePath ?>/logout" class="user-menu-item user-menu-item-danger">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
@@ -401,7 +402,7 @@ $csrfToken = Auth::getCsrfToken();
     </header>
 
     <div class="page-container">
-        <a href="/docs/users" class="back-link">
+        <a href="<?= $basePath ?>/users" class="back-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
@@ -502,6 +503,7 @@ $csrfToken = Auth::getCsrfToken();
 
     <script>
     window.CSRF_TOKEN = <?= json_encode($csrfToken) ?>;
+    window.BASE_PATH = <?= json_encode($basePath) ?>;
     window.USER_ID = <?= json_encode($editUser['id'] ?? '') ?>;
     window.IS_SUPER_ADMIN = <?= json_encode($editUser['is_super_admin'] ?? false) ?>;
     window.CURRENT_PERMISSIONS = <?= json_encode($editUser['permissions'] ?? ['full_access' => false, 'sections' => []]) ?>;
@@ -524,7 +526,7 @@ $csrfToken = Auth::getCsrfToken();
         function loadContentTree() {
             if (window.IS_SUPER_ADMIN) return;
 
-            fetch('/docs/api/content/tree', {
+            fetch(window.BASE_PATH + '/api/content/tree', {
                 headers: { 'X-CSRF-Token': window.CSRF_TOKEN }
             })
             .then(function(r) { return r.json(); })
@@ -710,7 +712,7 @@ $csrfToken = Auth::getCsrfToken();
                 data.password = password;
             }
 
-            fetch('/docs/api/users/' + window.USER_ID, {
+            fetch(window.BASE_PATH + '/api/users/' + window.USER_ID, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -761,7 +763,7 @@ $csrfToken = Auth::getCsrfToken();
                     })
                 };
 
-                fetch('/docs/api/users/' + window.USER_ID + '/permissions', {
+                fetch(window.BASE_PATH + '/api/users/' + window.USER_ID + '/permissions', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

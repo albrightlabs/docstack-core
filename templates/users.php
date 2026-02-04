@@ -5,6 +5,7 @@ use App\Auth;
 use App\Config;
 
 $branding = Config::getBranding();
+$basePath = Config::getBasePath();
 $appName = $branding['site_name'];
 $csrfToken = Auth::getCsrfToken();
 ?>
@@ -416,7 +417,7 @@ $csrfToken = Auth::getCsrfToken();
 <body>
     <header class="site-header">
         <div class="header-content" style="flex-direction: row; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px;">
-            <a href="/docs" class="site-logo">
+            <a href="<?= $basePath ?>" class="site-logo">
                 <?php if (!empty($branding['logo_url'])): ?>
                 <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>" style="height: 32px; width: auto;">
                 <?php else: ?>
@@ -440,7 +441,7 @@ $csrfToken = Auth::getCsrfToken();
                             echo $role === 'admin' ? 'Admin' : ($role === 'editor' ? 'Editor' : 'Read-Only');
                         ?></span>
                     </div>
-                    <a href="/docs/logout" class="user-menu-item user-menu-item-danger">
+                    <a href="<?= $basePath ?>/logout" class="user-menu-item user-menu-item-danger">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
@@ -552,6 +553,7 @@ $csrfToken = Auth::getCsrfToken();
     <script>
     window.CSRF_TOKEN = <?= json_encode($csrfToken) ?>;
     window.CURRENT_USER_ID = <?= json_encode($currentUser['id'] ?? '') ?>;
+    window.BASE_PATH = <?= json_encode($basePath) ?>;
 
     document.addEventListener('DOMContentLoaded', function() {
         var users = [];
@@ -565,7 +567,7 @@ $csrfToken = Auth::getCsrfToken();
         function loadUsers() {
             usersList.innerHTML = '<div class="empty-state"><div class="loading-spinner"></div> Loading users...</div>';
 
-            fetch('/docs/api/users', {
+            fetch(window.BASE_PATH + '/api/users', {
                 headers: { 'X-CSRF-Token': window.CSRF_TOKEN }
             })
             .then(function(r) { return r.json(); })
@@ -602,7 +604,7 @@ $csrfToken = Auth::getCsrfToken();
                         '</div>' +
                     '</div>' +
                     '<div class="user-card-actions">' +
-                        (canEdit ? '<a href="/docs/users/' + user.id + '/edit" class="btn btn-secondary btn-sm">Edit</a>' : '') +
+                        (canEdit ? '<a href="' + window.BASE_PATH + '/users/' + user.id + '/edit" class="btn btn-secondary btn-sm">Edit</a>' : '') +
                         (canDelete ? '<button type="button" class="btn btn-danger btn-sm delete-user" data-id="' + user.id + '" data-name="' + escapeHtml(user.name || user.email) + '">Delete</button>' : '') +
                         (!canEdit && !canDelete ? '<span class="text-muted" style="font-size: 12px;">Protected</span>' : '') +
                     '</div>' +
@@ -661,7 +663,7 @@ $csrfToken = Auth::getCsrfToken();
             submitBtn.disabled = true;
             submitBtn.textContent = 'Creating...';
 
-            fetch('/docs/api/users', {
+            fetch(window.BASE_PATH + '/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -693,7 +695,7 @@ $csrfToken = Auth::getCsrfToken();
             deleteBtn.disabled = true;
             deleteBtn.textContent = 'Deleting...';
 
-            fetch('/docs/api/users/' + deleteUserId, {
+            fetch(window.BASE_PATH + '/api/users/' + deleteUserId, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ csrf_token: window.CSRF_TOKEN })

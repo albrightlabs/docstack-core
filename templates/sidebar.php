@@ -1,5 +1,7 @@
 <?php
 
+use App\Config;
+
 /**
  * Escape a string for use in JavaScript single-quoted strings
  */
@@ -8,12 +10,16 @@ function jsEscape(string $str): string
     return addslashes(htmlspecialchars($str, ENT_QUOTES, 'UTF-8'));
 }
 
+// Get base path for URLs
+$sidebarBasePath = Config::getBasePath();
+
 /**
  * Render a sidebar tree recursively with admin controls
  * Supports nav_only items (user can see for navigation but not access content)
  */
 function renderTree(array $items, string $currentPath, string $parentSlug = '', int $depth = 0): void
 {
+    global $sidebarBasePath;
     foreach ($items as $item):
         $isActive = $currentPath === $item['slug'];
         $isNavOnly = $item['nav_only'] ?? false;
@@ -30,7 +36,7 @@ function renderTree(array $items, string $currentPath, string $parentSlug = '', 
                 <?php if ($isNavOnly): ?>
                 <span class="sidebar-section-title"><?= $itemName ?></span>
                 <?php else: ?>
-                <a href="/docs/<?= $itemSlug ?>" class="sidebar-section-link sidebar-section-title<?= $isActive ? ' active' : '' ?>"><?= $itemName ?></a>
+                <a href="<?= $sidebarBasePath ?>/<?= $itemSlug ?>" class="sidebar-section-link sidebar-section-title<?= $isActive ? ' active' : '' ?>"><?= $itemName ?></a>
                 <?php endif; ?>
                 <?php if (!$isNavOnly): ?>
                 <span class="sidebar-item-actions admin-only" style="display: none;">
@@ -57,7 +63,7 @@ function renderTree(array $items, string $currentPath, string $parentSlug = '', 
                 <span class="sidebar-link-text"><?= $itemName ?></span>
             </span>
             <?php else: ?>
-            <a href="/docs/<?= $itemSlug ?>" class="sidebar-link<?= $isActive ? ' active' : '' ?>">
+            <a href="<?= $sidebarBasePath ?>/<?= $itemSlug ?>" class="sidebar-link<?= $isActive ? ' active' : '' ?>">
                 <span class="sidebar-link-text"><?= $itemName ?></span>
                 <span class="sidebar-item-actions admin-only" style="display: none;">
                     <button class="sidebar-action-btn" onclick="event.preventDefault(); event.stopPropagation(); AdminEditor.enterEditMode('<?= $itemSlugJs ?>')" title="Edit">
