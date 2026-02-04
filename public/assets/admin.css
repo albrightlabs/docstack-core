@@ -660,6 +660,11 @@
         padding-top: 16px;
     }
 
+    /* Make editor full width on mobile */
+    .layout.editing-mode {
+        grid-template-columns: 1fr;
+    }
+
     /* Hide editor preview on mobile - screen too small for split view */
     .editor-pane-preview {
         display: none !important;
