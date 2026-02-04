@@ -476,6 +476,12 @@ $currentSection = null;
     window.BASE_PATH = <?= json_encode($basePath) ?>;
     window.USER_ID = <?= json_encode($editUser['id'] ?? '') ?>;
     window.IS_SUPER_ADMIN = <?= json_encode($editUser['is_super_admin'] ?? false) ?>;
+    // AdminState for admin.js compatibility (cleanup uploads, etc.)
+    window.AdminState = {
+        authenticated: true,
+        csrfToken: <?= json_encode($csrfToken) ?>,
+        basePath: <?= json_encode($basePath) ?>
+    };
     window.CURRENT_PERMISSIONS = <?= json_encode($editUser['permissions'] ?? ['full_access' => false, 'sections' => []]) ?>;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -795,5 +801,7 @@ $currentSection = null;
         faviconShowLetter: <?= json_encode($branding['favicon_show_letter']) ?>
     });
     </script>
+    <script src="/assets/admin.js"></script>
+    <?php include __DIR__ . '/password-modal.php'; ?>
 </body>
 </html>

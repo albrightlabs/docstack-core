@@ -554,6 +554,12 @@ $currentSection = null;
     window.CSRF_TOKEN = <?= json_encode($csrfToken) ?>;
     window.CURRENT_USER_ID = <?= json_encode($currentUser['id'] ?? '') ?>;
     window.BASE_PATH = <?= json_encode($basePath) ?>;
+    // AdminState for admin.js compatibility (cleanup uploads, etc.)
+    window.AdminState = {
+        authenticated: true,
+        csrfToken: <?= json_encode($csrfToken) ?>,
+        basePath: <?= json_encode($basePath) ?>
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
         var users = [];
@@ -808,5 +814,7 @@ $currentSection = null;
         faviconShowLetter: <?= json_encode($branding['favicon_show_letter']) ?>
     });
     </script>
+    <script src="/assets/admin.js"></script>
+    <?php include __DIR__ . '/password-modal.php'; ?>
 </body>
 </html>
