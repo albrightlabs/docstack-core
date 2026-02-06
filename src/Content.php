@@ -145,7 +145,7 @@ class Content
         return [
             'slug' => $path,
             'title' => $this->extractTitle($parsed['content']) ?? getDisplayName(basename($resolved['path'])),
-            'markdown' => $markdown,
+            'markdown' => $parsed['content'],
             'isIndex' => $resolved['isIndex'],
             'lastModified' => filemtime($resolved['path']),
             'frontmatter' => $parsed['frontmatter'],
