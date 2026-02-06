@@ -139,12 +139,16 @@ class Content
             return null;
         }
 
+        // Parse frontmatter
+        $parsed = $this->parseFrontmatter($markdown);
+
         return [
             'slug' => $path,
-            'title' => $this->extractTitle($markdown) ?? getDisplayName(basename($resolved['path'])),
+            'title' => $this->extractTitle($parsed['content']) ?? getDisplayName(basename($resolved['path'])),
             'markdown' => $markdown,
             'isIndex' => $resolved['isIndex'],
             'lastModified' => filemtime($resolved['path']),
+            'frontmatter' => $parsed['frontmatter'],
         ];
     }
 
@@ -218,6 +222,35 @@ class Content
             return trim($matches[1]);
         }
         return null;
+    }
+
+    /**
+     * Parse YAML frontmatter from markdown content
+     * Returns array with 'frontmatter' and 'content' keys
+     */
+    private function parseFrontmatter(string $markdown): array
+    {
+        $frontmatter = [];
+        $content = $markdown;
+
+        // Check for YAML frontmatter (between --- markers)
+        if (preg_match('/^---\s*\n(.*?)\n---\s*\n/s', $markdown, $matches)) {
+            $yamlContent = $matches[1];
+            $content = substr($markdown, strlen($matches[0]));
+
+            // Simple YAML parsing for key: value pairs
+            foreach (explode("\n", $yamlContent) as $line) {
+                if (preg_match('/^([a-z_]+):\s*(.+)$/i', trim($line), $m)) {
+                    $value = trim($m[2]);
+                    // Handle boolean values
+                    if ($value === 'true') $value = true;
+                    elseif ($value === 'false') $value = false;
+                    $frontmatter[$m[1]] = $value;
+                }
+            }
+        }
+
+        return ['frontmatter' => $frontmatter, 'content' => $content];
     }
 
     /**

@@ -299,7 +299,13 @@ if (Auth::check() && !Auth::canAccessContent($path)) {
 // Parse markdown
 $html = $markdown->parse($doc['markdown']);
 $html = $markdown->rewriteLinks($html, $path, $doc['isIndex'] ?? false);
-$html = $markdown->addHeadingAnchors($html);
+
+// Only add heading anchors if not disabled via frontmatter
+$disableAnchors = ($doc['frontmatter']['heading_anchors'] ?? true) === false;
+if (!$disableAnchors) {
+    $html = $markdown->addHeadingAnchors($html);
+}
+
 $headings = $markdown->extractHeadings($html);
 
 // Build breadcrumb (skip the section since it's in tabs)
