@@ -26,7 +26,35 @@ $error = $error ?? null;
     </style>
     <?php endif; ?>
 </head>
-<body class="password-page">
+<body>
+    <header class="site-header">
+        <div>
+            <div class="header-left">
+                <span class="site-logo">
+                    <?php if (!empty($branding['logo_url'])): ?>
+                    <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>"<?= !empty($branding['logo_width']) ? ' style="max-width: ' . htmlspecialchars($branding['logo_width']) . 'px;"' : '' ?>>
+                    <?php else: ?>
+                    <?php if (!empty($branding['site_emoji'])): ?>
+                    <span class="site-logo-emoji"><?= htmlspecialchars($branding['site_emoji']) ?></span>
+                    <?php endif; ?>
+                    <?= htmlspecialchars($branding['site_name']) ?>
+                    <?php endif; ?>
+                </span>
+            </div>
+            <div class="header-right">
+                <?php if (!empty($branding['external_link_url'])): ?>
+                <a href="<?= htmlspecialchars($branding['external_link_url']) ?>" class="header-external-link" target="_blank" rel="noopener noreferrer">
+                    <?php if (!empty($branding['external_link_logo'])): ?>
+                    <img src="<?= htmlspecialchars($branding['external_link_logo']) ?>" alt="<?= htmlspecialchars($branding['external_link_name']) ?>" width="16" height="16">
+                    <?php endif; ?>
+                    <?= htmlspecialchars($branding['external_link_name']) ?> &rarr;
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </header>
+
+    <div class="password-page">
     <div class="password-container">
         <div class="password-icon">&#128075;</div>
         <h1>Welcome to <?= htmlspecialchars($appName) ?></h1>
@@ -55,6 +83,7 @@ $error = $error ?? null;
             </div>
             <button type="submit" class="password-submit">Complete Setup</button>
         </form>
+    </div>
     </div>
 
     <script>

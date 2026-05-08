@@ -22,7 +22,7 @@ $isAuthenticated = Auth::check();
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            min-height: calc(100vh - var(--header-height));
             text-align: center;
             padding: 40px 20px;
             background: var(--bg-secondary, #f8f9fa);
@@ -112,6 +112,33 @@ $isAuthenticated = Auth::check();
     </style>
 </head>
 <body>
+    <header class="site-header">
+        <div>
+            <div class="header-left">
+                <span class="site-logo">
+                    <?php if (!empty($branding['logo_url'])): ?>
+                    <img src="<?= htmlspecialchars($branding['logo_url']) ?>" alt="<?= htmlspecialchars($branding['site_name']) ?>"<?= !empty($branding['logo_width']) ? ' style="max-width: ' . htmlspecialchars($branding['logo_width']) . 'px;"' : '' ?>>
+                    <?php else: ?>
+                    <?php if (!empty($branding['site_emoji'])): ?>
+                    <span class="site-logo-emoji"><?= htmlspecialchars($branding['site_emoji']) ?></span>
+                    <?php endif; ?>
+                    <?= htmlspecialchars($branding['site_name']) ?>
+                    <?php endif; ?>
+                </span>
+            </div>
+            <div class="header-right">
+                <?php if (!empty($branding['external_link_url'])): ?>
+                <a href="<?= htmlspecialchars($branding['external_link_url']) ?>" class="header-external-link" target="_blank" rel="noopener noreferrer">
+                    <?php if (!empty($branding['external_link_logo'])): ?>
+                    <img src="<?= htmlspecialchars($branding['external_link_logo']) ?>" alt="<?= htmlspecialchars($branding['external_link_name']) ?>" width="16" height="16">
+                    <?php endif; ?>
+                    <?= htmlspecialchars($branding['external_link_name']) ?> &rarr;
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </header>
+
     <div class="error-container">
         <p class="error-code">403</p>
         <h1 class="error-title">Access Denied</h1>
