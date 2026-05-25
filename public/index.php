@@ -207,9 +207,27 @@ $sections = $content->getSections();
 $pathParts = $path ? explode('/', $path) : [];
 $currentSection = $pathParts[0] ?? null;
 
-// If no path or root, redirect to first section
+// If no path or root, redirect to first section the user can access
 if (empty($path) && !empty($sections)) {
-    header('Location: ' . $basePath . '/' . $sections[0]['slug']);
+    $targetSection = null;
+    if (Auth::check()) {
+        foreach ($sections as $section) {
+            if (Auth::canAccessContent($section['slug'])) {
+                $targetSection = $section;
+                break;
+            }
+        }
+    } else {
+        $targetSection = $sections[0];
+    }
+
+    if ($targetSection !== null) {
+        header('Location: ' . $basePath . '/' . $targetSection['slug']);
+        exit;
+    }
+
+    http_response_code(403);
+    include __DIR__ . '/../templates/403.php';
     exit;
 }
 
